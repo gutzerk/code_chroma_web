@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { NAV_ITEMS } from "./shared/nav-links";
 
 /**
@@ -43,14 +44,14 @@ export default function MobileNav() {
         >
           <div className="flex flex-col gap-1">
             {NAV_ITEMS.map((item) => (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-2.5 text-sm text-[color:var(--text-2)] transition-colors hover:text-[color:var(--text-1)]"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>
