@@ -1,27 +1,29 @@
+import Link from "next/link";
 import MobileNav from "./MobileNav";
 import { NAV_ITEMS_DESKTOP } from "./shared/nav-links";
 
 const GITHUB = "https://github.com/UshakovDV/code-chroma";
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function Nav() {
   return (
     <header className="sticky top-0 z-50 border-b border-[color:var(--border-faint)] bg-[rgba(16,22,18,0.85)] backdrop-blur">
       <nav className="mx-auto flex max-w-[110rem] items-center justify-between px-5 py-3 sm:px-10 lg:px-6">
         <div className="flex items-center gap-6">
-          <a href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/codechroma.svg" alt="CodeChroma" className="h-6 w-6" />
+            <img src={`${BASE_PATH}/codechroma.svg`} alt="CodeChroma" className="h-6 w-6" />
             CodeChroma
-          </a>
+          </Link>
 
           {NAV_ITEMS_DESKTOP.map((item) => (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className="hidden items-center gap-1.5 text-sm text-[color:var(--text-2)] transition-colors hover:text-[color:var(--text-1)] sm:inline-flex"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
         </div>
 
