@@ -12,23 +12,22 @@ const PLATFORMS: Platform[] = [
   {
     id: "macos",
     name: "macOS",
-    commands: [
-      { title: "Homebrew", cmd: "brew install myapp" },
-      { title: "Script", cmd: "curl -fsSL https://example.com/install.sh | sh" },
-    ],
+    commands: [{ title: "Install script", cmd: "curl -fsSL https://codechroma.dev/install.sh | sh" }],
   },
   {
     id: "linux",
     name: "Linux",
-    commands: [
-      { title: "APT", cmd: "sudo apt install myapp" },
-      { title: "Script", cmd: "curl -fsSL https://example.com/install.sh | sh" },
-    ],
+    commands: [{ title: "Install script", cmd: "curl -fsSL https://codechroma.dev/install.sh | sh" }],
   },
   {
     id: "windows",
     name: "Windows",
-    commands: [{ title: "Winget", cmd: "winget install Acme.MyApp" }],
+    commands: [
+      {
+        title: "PowerShell",
+        cmd: 'powershell -ExecutionPolicy Bypass -c "irm https://codechroma.dev/install.ps1 | iex"',
+      },
+    ],
   },
 ];
 
@@ -116,6 +115,17 @@ export default function InstallTabs() {
           <CommandBlock key={c.title} title={c.title} cmd={c.cmd} />
         ))}
       </div>
+
+      <p className="mt-6 text-sm text-[color:var(--text-2)]">
+        To install a specific version, choose it from the{" "}
+        <a
+          href="https://github.com/gutzerk/code_chroma/releases"
+          className="text-[color:var(--accent)] underline underline-offset-4 hover:opacity-80"
+        >
+          GitHub Releases
+        </a>
+        .
+      </p>
     </>
   );
 }
