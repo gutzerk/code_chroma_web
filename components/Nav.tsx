@@ -2,7 +2,7 @@ import Link from "next/link";
 import MobileNav from "./MobileNav";
 import { NAV_ITEMS_DESKTOP } from "./shared/nav-links";
 
-const GITHUB = "https://github.com/UshakovDV/code-chroma";
+const GITHUB = "https://github.com/gutzerk/code_chroma";
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export default function Nav() {

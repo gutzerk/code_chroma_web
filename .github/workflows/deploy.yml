@@ -37,6 +37,8 @@ jobs:
 
       - name: Build Next.js
         run: npm run build
+        env:
+          BASE_PATH: ""
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
