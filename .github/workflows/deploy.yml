@@ -40,6 +40,15 @@ jobs:
         env:
           BASE_PATH: ""
 
+      - name: Publish installer scripts
+        run: |
+          curl --fail --location --silent --show-error --retry 3 \
+            https://raw.githubusercontent.com/gutzerk/code_chroma/main/install.sh \
+            --output ./out/install.sh
+          curl --fail --location --silent --show-error --retry 3 \
+            https://raw.githubusercontent.com/gutzerk/code_chroma/main/install.ps1 \
+            --output ./out/install.ps1
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
