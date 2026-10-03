@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const publicAsset = (path: string) => `${process.env.NEXT_PUBLIC_BASE_PATH}${path}`;
+
 /**
  * Product visuals for the landing — real screen-recorded webm clips (in /public)
  * shown as expandable thumbnails. Every shot reuses ZoomableVideoShot, which wraps
@@ -127,7 +129,7 @@ function ZoomableVideoShot({
             playsInline
             preload="metadata"
           >
-            <source src={src} type="video/webm" />
+            <source src={publicAsset(src)} type="video/webm" />
           </video>
         )}
       </button>
@@ -153,9 +155,9 @@ export function HeroShot() {
         loop
         playsInline
         preload="metadata"
-        poster="/demo-poster.gif"
+        poster={publicAsset("/demo-poster.gif")}
       >
-        <source src="/demo-hd.webm" type="video/webm" />
+        <source src={publicAsset("/demo-hd.webm")} type="video/webm" />
         Your browser does not support video playback.
       </video>
     </div>
