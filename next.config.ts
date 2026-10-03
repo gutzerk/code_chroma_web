@@ -1,13 +1,12 @@
 ﻿import type { NextConfig } from "next";
 
-const basePath = "/code_chroma_web";
+const basePath = process.env.BASE_PATH ?? "";
 
 const nextConfig: NextConfig = {
   output: "export",
   trailingSlash: true,
 
-  basePath,
-  assetPrefix: `${basePath}/`,
+  ...(basePath ? { basePath } : {}),
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },

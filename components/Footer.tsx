@@ -12,7 +12,7 @@ export default function Footer() {
         </div>
         <div className="flex items-center gap-6 text-sm text-[color:var(--text-3)]">
           <a
-            href="https://github.com/UshakovDV/code-chroma"
+            href="https://github.com/gutzerk/code_chroma"
             target="_blank"
             rel="noopener noreferrer"
             className="transition-colors hover:text-[color:var(--text-1)]"
