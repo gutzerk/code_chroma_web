@@ -43,10 +43,10 @@ jobs:
       - name: Publish installer scripts
         run: |
           curl --fail --location --silent --show-error --retry 3 \
-            https://raw.githubusercontent.com/gutzerk/code_chroma/main/install.sh \
+            https://raw.githubusercontent.com/gutzerk/code_chroma/main/distribution/install.sh \
             --output ./out/install.sh
           curl --fail --location --silent --show-error --retry 3 \
-            https://raw.githubusercontent.com/gutzerk/code_chroma/main/install.ps1 \
+            https://raw.githubusercontent.com/gutzerk/code_chroma/main/distribution/install.ps1 \
             --output ./out/install.ps1
 
       - name: Upload artifact
