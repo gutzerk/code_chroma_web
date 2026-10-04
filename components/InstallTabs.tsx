@@ -12,22 +12,12 @@ const PLATFORMS: Platform[] = [
   {
     id: "macos",
     name: "macOS",
-    commands: [
-      {
-        title: "Install script",
-        cmd: "curl -fsSL https://raw.githubusercontent.com/gutzerk/code_chroma/main/distribution/install.sh | sh",
-      },
-    ],
+    commands: [{ title: "Install script", cmd: "curl -fsSL https://codechroma.dev/install.sh | sh" }],
   },
   {
     id: "linux",
     name: "Linux",
-    commands: [
-      {
-        title: "Install script",
-        cmd: "curl -fsSL https://raw.githubusercontent.com/gutzerk/code_chroma/main/distribution/install.sh | sh",
-      },
-    ],
+    commands: [{ title: "Install script", cmd: "curl -fsSL https://codechroma.dev/install.sh | sh" }],
   },
   {
     id: "windows",
@@ -35,7 +25,7 @@ const PLATFORMS: Platform[] = [
     commands: [
       {
         title: "PowerShell",
-        cmd: 'powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/gutzerk/code_chroma/main/distribution/install.ps1 | iex"',
+        cmd: 'powershell -ExecutionPolicy Bypass -c "irm https://codechroma.dev/install.ps1 | iex"',
       },
     ],
   },
