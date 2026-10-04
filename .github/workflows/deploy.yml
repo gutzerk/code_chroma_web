@@ -42,12 +42,20 @@ jobs:
 
       - name: Publish installer scripts
         run: |
+          cat > ./out/install.sh <<'EOF'
+          #!/bin/sh
+          set -eu
+          tmp="$(mktemp)"
+          trap 'rm -f "$tmp"' EXIT HUP INT TERM
           curl --fail --location --silent --show-error --retry 3 \
             https://raw.githubusercontent.com/gutzerk/code_chroma/main/distribution/install.sh \
-            --output ./out/install.sh
-          curl --fail --location --silent --show-error --retry 3 \
-            https://raw.githubusercontent.com/gutzerk/code_chroma/main/distribution/install.ps1 \
-            --output ./out/install.ps1
+            --output "$tmp"
+          sh "$tmp" "$@"
+          EOF
+          cat > ./out/install.ps1 <<'EOF'
+          $ErrorActionPreference = 'Stop'
+          Invoke-Expression (Invoke-RestMethod -Uri 'https://raw.githubusercontent.com/gutzerk/code_chroma/main/distribution/install.ps1')
+          EOF
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
