@@ -23,7 +23,10 @@ const SLIDES: Slide[] = [
     kicker: "CodeChroma",
     title: "Your codebase. Your map.",
     body: "CodeChroma turns any repo into a semantic map of how the system actually works — so speed doesn't come at the cost of architecture.",
-    bullets: ["Semantic architecture map for LLM-era code"],
+    bullets: [
+      "Semantic architecture map for LLM-era code",
+      "Runs entirely on your machine — safe for work projects",
+    ],
     Shot: HeroShot,
   },
   {
@@ -184,6 +187,14 @@ export default function Showcase() {
             <slide.Shot key={slide.id} />
           </div>
         </div>
+      </div>
+
+      {/* Always-visible privacy note — independent of the carousel slide. */}
+      <div className="rounded-lg border border-[color:var(--border-faint)] bg-[color:var(--surface-1)] px-5 py-4 text-sm leading-relaxed text-[color:var(--text-2)]">
+        <span className="font-semibold text-[color:var(--text-1)]">Safe for work projects.</span>{" "}
+        Everything in CodeChroma runs locally, on your machine alone.
+        You choose the AI provider yourself, so you can use only the ones approved by your
+        management.
       </div>
     </section>
   );
