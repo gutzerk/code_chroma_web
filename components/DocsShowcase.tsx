@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useCarousel } from "./shared/carousel";
 import { SectionNav, type Slide } from "./shared/section-nav";
 
@@ -275,6 +276,18 @@ const TROUBLESHOOTING_ITEMS = [
   },
 ];
 
+/* ---- Privacy & tokens ---- */
+const FAQ_ITEMS = [
+  {
+    title: "Does CodeChroma send my project anywhere?",
+    body: "No. Everything runs locally on your machine, and there is no telemetry. The AI provider is yours: you pick it, so you can use only the ones approved by your management — including a local model.",
+  },
+  {
+    title: "What will it cost in tokens?",
+    body: "Exploring the map, the canvas, and live sync run on a built-in offline summarizer and use no tokens. Only AI features (diagram generation, AI summaries, agents) call your provider, and tokens are billed by that provider on your own account.",
+  },
+];
+
 /* ---- Overview cards ---- */
 const OVERVIEW_POINTS = [
   { title: "A semantic map, not a folder tree", body: "Zoomable levels — System, Pillar, Component, Service, Function — match how you actually reason about a codebase." },
@@ -299,12 +312,12 @@ function Card({
   return (
     <div className="flex items-start gap-4 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-0)] p-5">
       <div className="min-w-0 flex-1">
-        {tag && <div className="mb-1.5 font-mono text-[10px] uppercase tracking-wide text-[color:var(--text-3)]">{tag}</div>}
-        <div className="text-sm font-semibold text-[color:var(--text-1)]">{title}</div>
-        <p className="mt-1.5 text-sm leading-relaxed text-[color:var(--text-2)]">{body}</p>
+        {tag && <div className="mb-1.5 font-mono text-xs uppercase tracking-wide text-[color:var(--text-3)]">{tag}</div>}
+        <div className="text-lg font-semibold text-[color:var(--text-1)]">{title}</div>
+        <p className="mt-1.5 text-base leading-relaxed text-[color:var(--text-2)]">{body}</p>
       </div>
       {detail && (
-        <span className="mt-0.5 shrink-0 rounded-md border border-[color:var(--border)] px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-[color:var(--accent)]">
+        <span className="mt-0.5 shrink-0 rounded-md border border-[color:var(--border)] px-2 py-1 font-mono text-xs uppercase tracking-wide text-[color:var(--accent)]">
           {detail}
         </span>
       )}
@@ -316,23 +329,29 @@ export default function DocsShowcase() {
   const { index, go, goTo, dragHandlers } = useCarousel(SLIDES.length);
   const slide = SLIDES[index];
 
+  // Deep links like /documentation#faq open that section.
+  useEffect(() => {
+    const i = SLIDES.findIndex((s) => s.id === window.location.hash.slice(1));
+    if (i > 0) goTo(i);
+  }, [goTo]);
+
   return (
     <div className="grid grid-cols-1 gap-10 lg:grid-cols-[20rem_1fr] lg:gap-16">
       {/* Left panel — switch sections */}
       <SectionNav eyebrow="documentation" slides={SLIDES} index={index} go={go} goTo={goTo} />
 
       {/* Content */}
-      <div className="max-w-5xl pt-12 pb-24">
+      <div className="max-w-6xl pt-12 pb-12 lg:min-h-[calc(100vh-6rem)]">
         <header>
           <p className="font-mono text-xs tracking-widest text-[color:var(--accent)]">{slide.kicker}</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">{slide.title}</h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-[color:var(--text-2)] sm:text-lg">
+          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[color:var(--text-2)] sm:text-xl">
             {slide.blurb}
           </p>
         </header>
 
         <div
-          className="mt-8 touch-pan-y space-y-4"
+          className="mt-10 touch-pan-y space-y-5"
           key={slide.id}
           {...dragHandlers}
         >
@@ -370,12 +389,12 @@ const SLIDES: Slide[] = [
       <ol className="space-y-3">
         {QUICK_START_STEPS.map((s, i) => (
           <li key={s.title} className="flex gap-4 rounded-lg border border-[color:var(--border-faint)] bg-[color:var(--surface-0)] p-5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[color:var(--accent)] bg-[color:var(--surface-2)] font-mono text-sm text-[color:var(--accent)]">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[color:var(--accent)] bg-[color:var(--surface-2)] font-mono text-base text-[color:var(--accent)]">
               {i + 1}
             </span>
             <div>
-              <div className="text-sm font-semibold text-[color:var(--text-1)]">{s.title}</div>
-              <p className="mt-1 text-sm leading-relaxed text-[color:var(--text-2)]">{s.body}</p>
+              <div className="text-lg font-semibold text-[color:var(--text-1)]">{s.title}</div>
+              <p className="mt-1 text-base leading-relaxed text-[color:var(--text-2)]">{s.body}</p>
             </div>
           </li>
         ))}
@@ -395,9 +414,9 @@ const SLIDES: Slide[] = [
           <div key={l.name} className="flex items-start gap-4 rounded-lg border border-[color:var(--border-faint)] bg-[color:var(--surface-0)] px-4 py-3">
             <div className="flex min-w-[7rem] items-center gap-2">
               <span className="font-mono text-xs text-[color:var(--text-3)]">0{i + 1}</span>
-              <span className="text-sm font-semibold text-[color:var(--text-1)]">{l.name}</span>
+              <span className="text-lg font-semibold text-[color:var(--text-1)]">{l.name}</span>
             </div>
-            <p className="text-sm leading-relaxed text-[color:var(--text-2)]">{l.detail}</p>
+            <p className="text-base leading-relaxed text-[color:var(--text-2)]">{l.detail}</p>
           </div>
         ))}
       </div>
@@ -416,12 +435,12 @@ const SLIDES: Slide[] = [
         {panel.controls.map((c) => (
           <div key={c.name} className="flex flex-col gap-6 p-5 sm:flex-row sm:items-start">
             <div className="flex min-w-[9rem] items-center gap-3 sm:flex-col sm:items-start sm:gap-1">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[color:var(--border)] bg-[color:var(--surface-2)] text-sm text-[color:var(--accent)]">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[color:var(--border)] bg-[color:var(--surface-2)] text-base text-[color:var(--accent)]">
                 <c.Icon />
               </span>
-              <div className="text-sm font-semibold text-[color:var(--text-1)]">{c.name}</div>
+              <div className="text-lg font-semibold text-[color:var(--text-1)]">{c.name}</div>
             </div>
-            <p className="text-sm leading-relaxed text-[color:var(--text-2)]">
+            <p className="text-base leading-relaxed text-[color:var(--text-2)]">
               {c.what}
               {c.tip && <span className="mt-1 block font-mono text-xs text-[color:var(--accent)]">→ {c.tip}</span>}
             </p>
@@ -469,12 +488,12 @@ const SLIDES: Slide[] = [
     blurb: "The canvas is mouse-native, with a keyboard path to match. How to pan, zoom, select, and stop a dev run.",
     content: (
       <div className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-0)]">
-        <table className="w-full text-left text-sm">
+        <table className="w-full text-left text-base">
           <thead>
             <tr className="border-b border-[color:var(--border-faint)]">
-              <th className="px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[color:var(--text-3)]">Keys</th>
-              <th className="px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[color:var(--text-3)]">Action</th>
-              <th className="px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-[color:var(--text-3)]">Input</th>
+              <th className="px-4 py-3 font-mono text-xs uppercase tracking-widest text-[color:var(--text-3)]">Keys</th>
+              <th className="px-4 py-3 font-mono text-xs uppercase tracking-widest text-[color:var(--text-3)]">Action</th>
+              <th className="px-4 py-3 font-mono text-xs uppercase tracking-widest text-[color:var(--text-3)]">Input</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[color:var(--border-faint)]">
@@ -487,6 +506,21 @@ const SLIDES: Slide[] = [
             ))}
           </tbody>
         </table>
+      </div>
+    ),
+  },
+  {
+    id: "faq",
+    group: "Reference",
+    label: "Privacy & tokens",
+    kicker: "reference",
+    title: "Privacy and token cost",
+    blurb: "Safe for work projects: everything runs locally, and the AI provider is the one you choose.",
+    content: (
+      <div className="space-y-3">
+        {FAQ_ITEMS.map((f) => (
+          <Card key={f.title} title={f.title} body={f.body} />
+        ))}
       </div>
     ),
   },

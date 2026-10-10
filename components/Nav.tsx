@@ -1,5 +1,6 @@
 import Link from "next/link";
 import MobileNav from "./MobileNav";
+import NavLink from "./shared/NavLink";
 import { NAV_ITEMS_DESKTOP } from "./shared/nav-links";
 
 const GITHUB = "https://github.com/gutzerk/code_chroma";
@@ -17,13 +18,14 @@ export default function Nav() {
           </Link>
 
           {NAV_ITEMS_DESKTOP.map((item) => (
-            <Link
+            <NavLink
               key={item.href}
               href={item.href}
-              className="hidden items-center gap-1.5 text-sm text-[color:var(--text-2)] transition-colors hover:text-[color:var(--text-1)] sm:inline-flex"
+              className="hidden items-center gap-1.5 border-b-2 border-transparent py-1 text-sm text-[color:var(--text-2)] transition-colors hover:text-[color:var(--text-1)] sm:inline-flex"
+              activeClassName="!border-[color:var(--added)] !text-[color:var(--text-1)]"
             >
               {item.label}
-            </Link>
+            </NavLink>
           ))}
         </div>
 

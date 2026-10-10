@@ -1,15 +1,29 @@
 "use client";
 
-import { HeroShot, DiagramsShot, DiffShot, AllInOneShot, PlanningShot } from "./shots";
+import { useState } from "react";
+import {
+  HeroShot,
+  DiagramsShot,
+  DiffShot,
+  AllInOneShot,
+  PlanningShot,
+  Lightbox,
+  VIDEO,
+  type ShotProps,
+} from "./shots";
 import { Arrow, ProgressDots, useCarousel } from "./shared/carousel";
 
 type Slide = {
   id: string;
   kicker: string;
   title: string;
+  /** Optional second headline line, same size as the title but accent-colored. */
+  tagline?: string;
   body: string;
   bullets: string[];
-  Shot: () => React.ReactElement;
+  /** Clip opened in the lightbox; slides without one aren't click-to-open. */
+  video?: string;
+  Shot: (props: ShotProps) => React.ReactElement;
 };
 
 /**
@@ -22,10 +36,12 @@ const SLIDES: Slide[] = [
     id: "hero",
     kicker: "CodeChroma",
     title: "Your codebase. Your map.",
+    tagline: "100% local.",
     body: "CodeChroma turns any repo into a semantic map of how the system actually works — so speed doesn't come at the cost of architecture.",
     bullets: [
       "Semantic architecture map for LLM-era code",
-      "Runs entirely on your machine — safe for work projects",
+      "100% local, no telemetry — safe for work projects",
+      "Bring your own AI provider",
     ],
     Shot: HeroShot,
   },
@@ -39,6 +55,7 @@ const SLIDES: Slide[] = [
       "Customizable views, not fixed layouts",
       "Grouping follows real code relationships",
     ],
+    video: VIDEO.diagrams,
     Shot: DiagramsShot,
   },
   {
@@ -51,6 +68,7 @@ const SLIDES: Slide[] = [
       "Features → epics → tasks",
       "Start from a clear structure",
     ],
+    video: VIDEO.plan,
     Shot: PlanningShot,
   },
   {
@@ -63,6 +81,7 @@ const SLIDES: Slide[] = [
       "Review quickly, skip the code walls",
       "Live, up to date on every save",
     ],
+    video: VIDEO.diff,
     Shot: DiffShot,
   },
   {
@@ -75,6 +94,7 @@ const SLIDES: Slide[] = [
       "Agents work directly on your real codebase",
       "Diagrams stay in sync as agents change the code",
     ],
+    video: VIDEO.workspace,
     Shot: AllInOneShot,
   },
   {
@@ -142,6 +162,22 @@ export default function Showcase() {
   const { index, go, goTo, dragHandlers } = useCarousel(SLIDES.length);
   const slide = SLIDES[index];
 
+  // Lightbox flips through the slides that have a clip; index is into that subset.
+  const [lightbox, setLightbox] = useState<number | null>(null);
+  const videoSlides = SLIDES.filter((s) => s.video);
+  const lightboxItems = videoSlides.map((s) => ({
+    src: s.video as string,
+    kicker: s.kicker,
+    title: s.title,
+    body: s.body,
+    bullets: s.bullets,
+  }));
+  const closeLightbox = () => {
+    // Land the carousel on the slide that was being watched.
+    if (lightbox !== null) goTo(SLIDES.indexOf(videoSlides[lightbox]));
+    setLightbox(null);
+  };
+
   return (
     <section
       id="showcase"
@@ -158,6 +194,9 @@ export default function Showcase() {
             </p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
               {slide.title}
+              {slide.tagline && (
+                <span className="block text-[color:var(--added)]">{slide.tagline}</span>
+              )}
             </h1>
             <p className="mt-4 text-base leading-relaxed text-[color:var(--text-2)] sm:text-lg">
               {slide.body}
@@ -184,10 +223,22 @@ export default function Showcase() {
         {/* Shot column — fixed height so the row (and the arrows below the text) stays put */}
         <div className="flex w-full lg:h-[540px] lg:items-start">
           <div className="w-full">
-            <slide.Shot key={slide.id} />
+            <slide.Shot
+              key={slide.id}
+              onOpen={() => setLightbox(videoSlides.indexOf(slide))}
+            />
           </div>
         </div>
       </div>
+
+      {lightbox !== null && (
+        <Lightbox
+          items={lightboxItems}
+          index={lightbox}
+          onIndex={setLightbox}
+          onClose={closeLightbox}
+        />
+      )}
 
       {/* Always-visible privacy note — independent of the carousel slide. */}
       <div className="rounded-lg border border-[color:var(--border-faint)] bg-[color:var(--surface-1)] px-5 py-4 text-sm leading-relaxed text-[color:var(--text-2)]">

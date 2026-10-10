@@ -80,6 +80,13 @@ body {
   border-bottom: 1px solid var(--border-faint);
 }
 
+/* Tailwind 4 preflight no longer sets a pointer cursor on buttons. */
+button:not(:disabled),
+[role="button"],
+summary {
+  cursor: pointer;
+}
+
 code, pre, .font-mono {
   font-family: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
