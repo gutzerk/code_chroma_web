@@ -47,7 +47,7 @@ export function SectionNav({ eyebrow, slides, index, go, goTo, arrowGap = "gap-2
                 type="button"
                 onClick={() => goTo(i)}
                 aria-current={i === index}
-                className={`block w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
+                className={`block w-full rounded-md px-3 py-2 text-left text-base transition-colors ${
                   sameGroup ? "ml-3 pl-2" : ""
                 } ${
                   i === index
@@ -63,7 +63,7 @@ export function SectionNav({ eyebrow, slides, index, go, goTo, arrowGap = "gap-2
       </nav>
 
       {/* Slide arrows — prev / next, just below the last menu item */}
-      <div className={`mt-6 flex items-center border-t border-[color:var(--border-faint)] pt-5 ${arrowGap}`}>
+      <div className={`mt-4 flex shrink-0 items-center border-t border-[color:var(--border-faint)] pt-5 ${arrowGap}`}>
         <Arrow dir="left" onClick={() => go(-1)} label="Previous section" />
         <ProgressDots count={slides.length} index={index} onSelect={goTo} labels={slides.map((s) => s.label)} />
         <Arrow dir="right" onClick={() => go(1)} label="Next section" />

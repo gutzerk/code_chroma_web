@@ -78,9 +78,9 @@ const ENV_SETTINGS: Setting[] = [
 function Card({ s }: { s: Setting }) {
   return (
     <div className="flex flex-col gap-1.5 rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-0)] p-5">
-      <div className="font-mono text-[10px] uppercase tracking-wide text-[color:var(--text-3)]">{s.scope}</div>
-      <div className="text-sm font-semibold text-[color:var(--text-1)]">{s.title}</div>
-      <p className="mt-1 text-sm leading-relaxed text-[color:var(--text-2)]">{s.body}</p>
+      <div className="font-mono text-xs uppercase tracking-wide text-[color:var(--text-3)]">{s.scope}</div>
+      <div className="text-lg font-semibold text-[color:var(--text-1)]">{s.title}</div>
+      <p className="mt-1 text-base leading-relaxed text-[color:var(--text-2)]">{s.body}</p>
     </div>
   );
 }
@@ -181,11 +181,11 @@ export default function SettingsShowcase() {
       <SectionNav eyebrow="configuration" slides={SLIDES} index={index} go={go} goTo={goTo} arrowGap="gap-3" />
 
       {/* Content */}
-      <div className="max-w-5xl pt-12 pb-24">
+      <div className="max-w-6xl pt-12 pb-12 lg:min-h-[calc(100vh-6rem)]">
         <header>
           <p className="font-mono text-xs tracking-widest text-[color:var(--accent)]">{slide.kicker}</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">{slide.title}</h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-[color:var(--text-2)] sm:text-lg">
+          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[color:var(--text-2)] sm:text-xl">
             {slide.blurb}
           </p>
         </header>
