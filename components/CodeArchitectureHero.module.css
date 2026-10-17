@@ -1,0 +1,199 @@
+.scrollSection {
+  position: relative;
+  overflow: clip;
+  isolation: isolate;
+  background: #090d12;
+}
+
+.pin {
+  --hero-ink: #f0f3f6;
+  position: relative;
+  height: 100svh;
+  min-height: 620px;
+  color: var(--hero-ink);
+  background: radial-gradient(ellipse at 50% 45%, rgba(21, 41, 57, .3), transparent 43%);
+}
+
+.ambient, .grid, .codeField { position: absolute; inset: 0; pointer-events: none; }
+.ambient { z-index: -1; opacity: .55; background: radial-gradient(ellipse at center, transparent 20%, rgba(4, 7, 11, .54) 100%); }
+.grid {
+  z-index: -1;
+  opacity: .12;
+  background-image: linear-gradient(rgba(155, 176, 190, .15) 1px, transparent 1px), linear-gradient(90deg, rgba(155, 176, 190, .15) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.codeField { z-index: 2; }
+.codeWindow {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: min(46vw, 720px);
+  height: min(90vh, 900px);
+  min-width: 500px;
+  overflow: hidden;
+  border: 1px solid rgba(154, 177, 197, .3);
+  border-radius: 8px;
+  background: rgba(14, 19, 26, .96);
+  box-shadow: 0 35px 110px rgba(0, 0, 0, .62), 0 0 0 1px rgba(255, 255, 255, .025) inset;
+  transform-origin: center center;
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+.windowBar { height: 43px; display: flex; align-items: center; gap: 11px; padding: 0 14px; border-bottom: 1px solid rgba(153, 173, 190, .16); background: rgba(31, 40, 50, .96); white-space: nowrap; }
+.fileIcon { display: grid; width: 22px; height: 22px; flex: none; place-items: center; border-radius: 5px; background: rgba(97, 157, 232, .17); color: #8bbaf6; font: 9px var(--font-geist-mono), monospace; }
+.filename { overflow: hidden; color: #d6dee5; text-overflow: ellipsis; font: 11px var(--font-geist-mono), monospace; }
+.windowMeta { margin-left: auto; color: #758594; font: 10px var(--font-geist-mono), monospace; }
+.windowDots { display: flex; flex: none; gap: 5px; margin-left: 12px; }
+.windowDots i { width: 6px; height: 6px; border-radius: 50%; background: #55616d; }
+.codeBody { height: calc(100% - 70px); overflow: hidden; padding: 10px 0 30px; color: #bac7d2; font: 10px/1.58 var(--font-geist-mono), monospace; }
+.codeLine { display: flex; min-width: max-content; white-space: pre; }
+.lineNumber { width: 48px; flex: none; padding-right: 13px; color: #596572; text-align: right; user-select: none; }
+.plain { color: #bdc7d0; }
+.keyword { color: #c792ea; }
+.string { color: #c3df9b; }
+.literal { color: #f0a873; }
+.comment { color: #71828f; }
+.fileFooter { position: absolute; right: 0; bottom: 0; left: 0; display: flex; justify-content: space-between; padding: 6px 13px; border-top: 1px solid rgba(153, 173, 190, .12); background: rgba(24, 31, 39, .97); color: #788695; font: 9px var(--font-geist-mono), monospace; }
+.blue .fileIcon { color: #84b8fb; background: rgba(97,157,232,.18); }
+.violet .fileIcon { color: #d0a5fa; background: rgba(192,130,247,.16); }
+.green .fileIcon { color: #8fe2b5; background: rgba(83,206,141,.16); }
+.amber .fileIcon { color: #f1c879; background: rgba(226,178,89,.16); }
+.cyan .fileIcon { color: #74dce4; background: rgba(75,198,207,.16); }
+.pink .fileIcon { color: #f2a2c0; background: rgba(229,126,166,.16); }
+
+.headline {
+  position: absolute;
+  z-index: 30;
+  top: 31%;
+  left: 50%;
+  width: min(980px, 90vw);
+  padding: 44px 48px 32px;
+  border: 1px solid rgba(164, 187, 206, .17);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(10, 15, 21, .93), rgba(10, 15, 21, .79));
+  box-shadow: 0 24px 90px rgba(0, 0, 0, .55), 0 0 70px rgba(72, 135, 157, .08);
+  text-align: center;
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(18px);
+}
+.eyebrow { margin: 0 0 20px; color: #7c98a9; font: 10px var(--font-geist-mono), monospace; letter-spacing: .18em; text-transform: uppercase; }
+.eyebrow span { margin-right: 9px; color: #60d6ac; }
+.headline h1 { margin: 0; color: #f4f7f8; font-size: clamp(42px, 6.2vw, 82px); font-weight: 550; line-height: .99; letter-spacing: -.065em; }
+.headline h1 em { color: #72dcb5; font-style: normal; }
+.subhead { margin: 20px 0 0; color: #9eabb4; font-size: clamp(14px, 1.25vw, 17px); letter-spacing: .005em; }
+.scrollCue { display: flex; align-items: center; justify-content: center; gap: 11px; margin-top: 34px; color: #8998a3; font: 9px var(--font-geist-mono), monospace; letter-spacing: .16em; }
+.mouse { position: relative; width: 14px; height: 20px; border: 1px solid #73cdb0; border-radius: 8px; }
+.mouse i { position: absolute; top: 4px; left: 5px; width: 2px; height: 4px; border-radius: 2px; background: #73cdb0; animation: scrollDot 1.4s ease-in-out infinite; }
+.cueLine { width: 30px; height: 1px; margin-left: 3px; background: linear-gradient(90deg, rgba(115,205,176,.8), transparent); }
+@keyframes scrollDot { 0%, 100% { opacity: .35; transform: translateY(0); } 55% { opacity: 1; transform: translateY(5px); } }
+
+.installCommandWrap { width: min(100%, 840px); margin: 22px auto 0; text-align: left; }
+.installPlatformTabs { display: flex; gap: 5px; margin-bottom: 7px; }
+.installPlatformTab { border: 1px solid transparent; border-radius: 4px; background: transparent; padding: 6px 10px; color: #8a99a7; font: 9px var(--font-geist-mono), monospace; transition: border-color .18s ease, background .18s ease, color .18s ease; }
+.installPlatformTab:hover { color: #d4e1e4; }
+.installPlatformTab[aria-selected="true"] { border-color: rgba(145, 171, 188, .3); background: rgba(13, 19, 25, .92); color: #dce7e9; }
+.installCommand { display: flex; min-height: 48px; align-items: center; gap: 12px; padding: 6px 7px 6px 13px; border: 1px solid rgba(145, 171, 188, .3); border-radius: 6px; background: rgba(7, 11, 16, .88); text-align: left; }
+.installCommandCode { min-width: 0; flex: 1; overflow-x: auto; color: #dce7e9; font: 11px var(--font-geist-mono), monospace; white-space: nowrap; }
+.installCommandButton { flex: none; border: 1px solid rgba(145, 171, 188, .3); border-radius: 4px; background: rgba(145, 171, 188, .07); padding: 7px 11px; color: #d4e1e4; font-size: 11px; transition: border-color .18s ease, color .18s ease; }
+.installCommandButton:hover { border-color: #73d8b2; color: #8be3bd; }
+
+.canvasSection {
+  position: relative;
+  height: 110svh;
+  min-height: 740px;
+  background: radial-gradient(ellipse at 50% 50%, rgba(21, 41, 57, .2), transparent 65%);
+}
+.diagram { position: absolute; inset: 0; z-index: 3; }
+.connections { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.connections > path { fill: none; stroke: #648b9b; stroke-width: 1.5; vector-effect: non-scaling-stroke; opacity: 0; }
+.port { position: absolute; width: 6px; height: 6px; border: 1px solid var(--accent); background: #101720; border-radius: 50%; }
+.portTop { top: -4px; left: calc(50% - 3px); }
+.portBottom { bottom: -4px; left: calc(50% - 3px); }
+.portLeft { left: -4px; top: calc(50% - 3px); }
+.portRight { right: -4px; top: calc(50% - 3px); }
+.canvasGrid { position: absolute; inset: 0; opacity: .16; pointer-events: none; background-image: linear-gradient(rgba(155, 176, 190, .14) 1px, transparent 1px), linear-gradient(90deg, rgba(155, 176, 190, .14) 1px, transparent 1px); background-size: 54px 54px; mask-image: linear-gradient(to bottom, black, transparent 90%); }
+
+/* CanvasNodeBox / InspectorPanel surfaces adapted from code-chroma/web/src/styles.css. */
+.canvasSection { --inspector-width: min(42%, 520px); display: flow-root; }
+.port { background: var(--surface-2, #22252e); }
+.canvasToolbar { position: absolute; z-index: 6; top: 18px; right: 3%; left: 3%; min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 14px; border: 1px solid #ffffff15; border-radius: 8px; background: #16181de8; color: #d4dde5; opacity: 0; }
+.canvasToolbar > div { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.canvasToolbar strong { font-size: 12px; font-weight: 500; }
+.demoLiveDot { width: 6px; height: 6px; border-radius: 50%; background: #72dcb5; box-shadow: 0 0 9px #72dcb555; }
+.demoHint { margin-left: 14px; color: #8e9eae; font-size: 11px; }
+.canvasToolbar button { flex: none; padding: 5px 8px; border: 1px solid #ffffff20; border-radius: 4px; color: #bccad4; background: #ffffff04; font-size: 11px; cursor: pointer; }
+.canvasToolbar button:hover { border-color: #72dcb5; color: #cceee0; }
+.canvasToolbar button:focus-visible, .inspector button:focus-visible { outline: 2px solid #8ab4f8; outline-offset: 2px; }
+.inspectorOpen .diagram { right: calc(var(--inspector-width) + 12px); }
+.inspector { position: absolute; z-index: 7; top: 80px; right: 0; bottom: 30px; width: var(--inspector-width); min-width: 300px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-faint, #3a3d47); border-right: 0; border-radius: 9px 0 0 9px; background: var(--surface-1, #16181d); color: var(--text-1, #e6e6e6); box-shadow: -12px 0 50px #0004; }
+.inspectorHeader { display: flex; justify-content: space-between; align-items: center; flex: none; gap: 12px; padding: 17px 18px 14px; border-bottom: 1px solid #ffffff12; }
+.inspectorEyebrow { display: block; margin-bottom: 5px; color: #7d93a6; font: 8px var(--font-geist-mono), monospace; letter-spacing: .13em; }
+.inspectorHeader h3 { margin: 0; font-size: 16px; font-weight: 500; }
+.inspectorHeader > button { display: grid; flex: none; place-items: center; width: 30px; height: 30px; border: 1px solid #ffffff18; border-radius: 5px; color: #aab7c4; background: transparent; font-size: 23px; line-height: 1; cursor: pointer; }
+.inspectorHeader > button:hover { color: #fff; background: #ffffff0c; }
+.inspectorTabs { flex: none; display: flex; overflow-x: auto; border-bottom: 1px solid #ffffff12; scrollbar-width: thin; }
+.inspectorTabs button { flex: none; padding: 12px 13px; border-bottom: 2px solid transparent; background: transparent; color: #8c9aab; font: 10px var(--font-geist-mono), monospace; cursor: pointer; }
+.inspectorTabs button[aria-selected="true"] { color: #dce5ee; border-bottom-color: #8ab4f8; background: #ffffff05; }
+.inspectorPath { flex: none; margin: 0; padding: 10px 14px; border-bottom: 1px solid #ffffff0b; overflow: hidden; color: #6e8194; font: 9px var(--font-geist-mono), monospace; white-space: nowrap; text-overflow: ellipsis; }
+.inspectorSourcePanel { min-height: 0; flex: 1; display: flex; }
+.inspectorSource { min-width: 0; flex: 1; overflow: auto; overscroll-behavior: contain; margin: 0; padding: 18px 0; background: var(--surface-code, #1b1e26); color: #bdc7d0; font: 11px/1.75 var(--font-geist-mono), monospace; scrollbar-width: thin; scrollbar-color: #58657260 transparent; tab-size: 4; }
+.inspectorSource code { display: block; min-width: max-content; }
+.inspectorLine { display: flex; padding-right: 20px; white-space: pre; }
+.inspectorLineNumber { position: sticky; left: 0; width: 48px; flex: none; padding-right: 14px; color: #607080; background: var(--surface-code, #1b1e26); text-align: right; user-select: none; }
+.inspectorFooter { display: flex; flex: none; justify-content: space-between; gap: 10px; padding: 8px 13px; border-top: 1px solid #ffffff12; color: #7a8c9b; font: 9px var(--font-geist-mono), monospace; }
+/* Keep the controls and code usable while scrolling through this canvas. */
+.canvasToolbar { position: sticky; top: 74px; right: auto; left: auto; height: 46px; min-height: 46px; margin: 18px 3% -64px; }
+.inspector { position: sticky; float: right; top: 132px; right: auto; bottom: auto; height: calc(100svh - 152px); margin-top: 80px; margin-bottom: 30px; }
+@media (max-width: 1000px) {
+}
+@media (max-width: 760px) {
+  .pin { min-height: 560px; }
+  .codeWindow { width: 96vw; min-width: 360px; height: 88vh; }
+  .windowMeta, .windowDots { display: none; }
+  .headline { top: 36%; width: calc(100vw - 38px); padding: 34px 20px 26px; }
+  .headline h1 { font-size: clamp(42px, 11vw, 64px); }
+  .subhead { max-width: 280px; margin-right: auto; margin-left: auto; line-height: 1.5; }
+  .scrollCue { margin-top: 27px; font-size: 8px; }
+  .installCommandWrap { margin-top: 18px; }
+  .installPlatformTab { padding: 6px 9px; font-size: 8px; }
+  .installCommand { gap: 8px; padding-left: 9px; }
+  .installCommandCode { font-size: 9px; }
+  .installCommandButton { padding: 6px 8px; font-size: 10px; }
+  .canvasSection { min-height: 850px; padding: 0; }
+  .inspectorOpen .diagram { right: 0; }
+  .inspector { width: min(100%, 480px); min-width: 0; top: 150px; height: calc(100svh - 170px); margin-top: 90px; }
+  .canvasToolbar { top: 74px; height: 60px; min-height: 60px; margin: 12px 3% -72px; padding: 9px; align-items: flex-start; }
+  .canvasToolbar > div { gap: 6px; }
+  .demoHint { width: 100%; margin-left: 0; font-size: 10px; }
+  .canvasToolbar button { font-size: 10px; }
+}
+
+
+
+@media (prefers-reduced-motion: reduce) {
+  .mouse i { animation: none; }
+  .codeWindow { will-change: auto; }
+}
+
+
+/* Placement belongs to the scroll scene; the product stylesheet owns the block shell. */
+.architectureNode { position: absolute; width: 26%; max-width: 380px; min-height: 0; padding: 0; box-shadow: none; opacity: 0; transform: translate(-50%, -50%); cursor: grab; touch-action: none; user-select: none; }
+.architectureNode.nodeDragging { cursor: grabbing; z-index: 4; }
+.architectureNode:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.fullProductSection { height: calc(100svh - 64px); min-height: 640px; padding-top: 0; scroll-margin-top: 64px; }
+.productFrame { position: absolute; top: 0; left: 0; z-index: 5; width: 100%; height: 100%; border: 0; opacity: 0; background: #0f1115; pointer-events: none; }
+.fullProductControls { position: absolute; top: 0; right: 0; left: 0; height: 32px; z-index: 6; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; background: #0f1115; border-block: 1px solid #262b38; color: #8b91a1; font-size: 11px; opacity: 0; }
+.fullProductControls > span { display: flex; align-items: center; gap: 8px; }
+.fullProductControls button { padding: 4px 8px; border: 0; background: transparent; color: #c3ccd5; font-size: 11px; cursor: pointer; }
+.fullProductControls button:hover { color: #72dcb5; }
+.fullProductSection:fullscreen { height: 100vh; min-height: 0; }
+.productLoading { position: absolute; top: 40px; left: 20px; z-index: 4; color: #8b91a1; font-size: 12px; }
+.canvasSection { background: linear-gradient(#090d12, var(--bg-canvas) 180px); }
+.canvasGrid { opacity: .8; background-image: radial-gradient(circle, var(--dot-grid) 1px, transparent 1px); background-size: 20px 20px; mask-image: linear-gradient(transparent, black 160px); }
+.inspector { border-color: var(--border-subtle); border-radius: 0; box-shadow: none; }
+@media (max-width: 760px) {
+  .architectureNode { width: 29%; }
+}

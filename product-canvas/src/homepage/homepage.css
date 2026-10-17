@@ -1,0 +1,7 @@
+/* Only embed accommodations. All canvas/panel/block styling comes from the product stylesheet. */
+html, body, #root { width: 100%; height: 100%; margin: 0; }
+.homepage-draw-menu { position: absolute; left: 54px; top: 180px; z-index: 300; min-width: 210px; padding: 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg-panel); box-shadow: 0 12px 40px #0007; }
+.homepage-draw-menu strong { display: block; padding: 8px; color: var(--text-muted); font-size: 12px; }
+.homepage-draw-menu button { display: block; width: 100%; padding: 9px; text-align: left; border: 0; border-radius: 4px; background: transparent; color: var(--text-primary); cursor: pointer; }
+.homepage-draw-menu button:hover { background: var(--bg-raised); }
+.homepage-draw-menu p { max-width: 240px; color: #f99; font-size: 12px; }

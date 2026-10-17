@@ -45,3 +45,9 @@ next-env.d.ts
 
 # assets
 files/
+
+# Built embedded product bundle
+/product-canvas/node_modules/
+/product-canvas/src/**/*.test.*
+/product-canvas/src/test/
+/product-canvas/src/test-setup.ts
