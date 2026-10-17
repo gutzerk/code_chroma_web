@@ -4,7 +4,7 @@
   
   --bg-ground: #0f1115; 
   --bg-panel: #181b23; 
-  --bg-canvas: #151820; 
+  --bg-canvas: #0b1a2a; 
   --bg-raised: #1e222c; 
   --bg-raised-2: #262b38; 
   --bg-inset: #12141a; 
@@ -14,7 +14,7 @@
   --accent-bg: #2b3550; 
   --success: #4ade80; 
   --select-ring: #3b4a73; 
-  --dot-grid: #262b38; 
+  --dot-grid: #17304a; 
 
   
   --radius-panel: 22px;
@@ -115,7 +115,7 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--custom-accent, var(--border-strong));
+  border: 1.5px solid var(--custom-accent, var(--border-strong));
   border-radius: 8px;
   background: var(--surface-2);
   color: var(--text-1);
@@ -161,13 +161,14 @@
   min-width: 0;
 }
 .productCanvas :global(.diagram-node-box-name) {
+  color: #e7eff8;
   font-size: 1.05rem;
   font-weight: 600;
   white-space: normal;
   overflow-wrap: anywhere;
 }
 .productCanvas :global(.diagram-node-box-desc) {
-  color: #8b93a7;
+  color: #9fb2c7;
   font-size: 0.7rem;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -207,16 +208,18 @@
   height: 1.4rem;
   line-height: 1;
   padding: 0;
-  border: 1px solid var(--control-border);
+  border: 1.5px solid rgba(0, 0, 0, .88);
   border-radius: 4px;
-  background: transparent;
-  color: var(--control-idle);
+  background: rgba(5, 12, 20, .16);
+  color: #172331;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .3);
   cursor: pointer;
 }
 .productCanvas :global(.canvas-node-box-copy-button:hover),
 .productCanvas :global(.canvas-node-box-desc-button:hover) {
-  color: #fff;
-  border-color: var(--control-hover-border);
+  color: #080d13;
+  border-color: #000;
+  background: rgba(0, 0, 0, .24);
 }
 .productCanvas :global(.canvas-node-box-copy-button.is-copied) {
   color: #6ec46e;

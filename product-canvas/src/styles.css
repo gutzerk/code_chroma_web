@@ -10,7 +10,7 @@
      existing component re-themes for free without a per-rule rewrite. */
   --bg-ground: #0f1115; /* window background behind the panels */
   --bg-panel: #181b23; /* left rail, agent panel, right sidebar */
-  --bg-canvas: #151820; /* center canvas */
+  --bg-canvas: #0b1a2a; /* blueprint navy canvas */
   --bg-raised: #1e222c; /* cards, chips, buttons inside panels */
   --bg-raised-2: #262b38; /* hover, active segment, counters */
   --bg-inset: #12141a; /* terminal, switcher track */
@@ -20,7 +20,7 @@
   --accent-bg: #2b3550; /* Generate button background */
   --success: #4ade80; /* agent status indicator */
   --select-ring: #3b4a73; /* selected card ring */
-  --dot-grid: #262b38; /* canvas grid dots */
+  --dot-grid: #17304a; /* subtle blueprint grid dots */
 
   /* Radii for the floating-card restyle. */
   --radius-panel: 22px;
@@ -1381,8 +1381,8 @@ body {
   /* An authored edge color lands on the `<g>` as the inheriting custom property `--edge-color`
      (RelationshipEdge.tsx); it paints the line by falling back when unset, exactly like the nodes'
      inline `style` needs no flag to tint a box. No `--edge-color` on an unstyled edge → `--text-3`. */
-  stroke: var(--edge-color, var(--text-3));
-  stroke-width: 1.5;
+  stroke: var(--edge-color, #8bb6dc);
+  stroke-width: 2;
   /* Rounded elbows for the orthogonal routing in connectors/orthogonalRoute.ts. linecap stays
      "butt": the two open ends already sit exactly on the boxes' borders (anchorOf), and a round
      cap would bulge past that point into whichever box the arrow touches. */
@@ -1398,6 +1398,27 @@ body {
   stroke-width: 3;
 }
 
+/* Supporting edges on the homepage architecture map stay visible without competing with the main
+   request and ingestion paths. */
+.c1-relationship-path--secondary {
+  stroke-dasharray: 6 5;
+  stroke: #97a9ba;
+  opacity: 0.72;
+}
+
+.c1-relationship-path--impact {
+  stroke-width: 3;
+}
+
+.c1-relationship-path--impact-secondary {
+  stroke-dasharray: 10 7;
+}
+
+.c1-relationship-label--secondary {
+  fill: #f4f8fc;
+  opacity: 0.72;
+}
+
 .c1-relationship-label--hero {
   fill: #ffffff;
   font-weight: 600;
@@ -1409,7 +1430,7 @@ body {
    forced over a box stays legible against the box's own fill. */
 .c1-relationship-casing {
   fill: none;
-  stroke: var(--surface-0);
+  stroke: #0b1a2a;
   stroke-width: 5;
   stroke-linejoin: round;
   /* butt, not round: see .c1-relationship-path — this halo is 5px wide, so a round cap would have
@@ -1419,7 +1440,7 @@ body {
 
 .c1-relationship-label {
   /* White caption text on the grey-green chip frame, so it reads against the dark canvas. */
-  fill: #ffffff;
+  fill: #f4f8fc;
   font-size: 0.7rem;
   text-anchor: middle;
   dominant-baseline: central;
@@ -1613,10 +1634,11 @@ body {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--custom-accent, var(--border-strong));
+  border: 1.5px solid var(--custom-accent, var(--border-strong));
   border-radius: 8px;
   background: var(--surface-2);
   color: var(--text-1);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
   overflow: visible;
 }
 
@@ -1648,8 +1670,8 @@ body {
   left: 50%;
   transform: translateX(-50%);
   width: 0;
-  border-left: 1.5px dashed rgb(var(--seq-accent-rgb));
-  opacity: 0.55;
+  border-left: 2px dashed #aeb9c7;
+  opacity: 0.9;
 }
 
 .sequence-participant-head {
@@ -1662,22 +1684,29 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 12px;
+  padding: 4px 10px;
   border: 1px solid rgb(var(--seq-accent-rgb));
   border-radius: 6px;
   background: color-mix(in oklab, rgb(var(--seq-accent-rgb)) 12%, var(--surface-2));
   color: var(--text-1);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 700;
   pointer-events: auto;
-  white-space: nowrap;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .sequence-participant-name {
+  min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* A horizontal message: a label centered on a left-to-right arrow (line). Positioned by the
@@ -1696,12 +1725,13 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.6rem;
+  font-size: 18px;
+  font-weight: 700;
   color: #ffffff;
   background: var(--surface-0);
   border: 1px solid rgb(var(--seq-accent-rgb));
   border-radius: 8px;
-  padding: 1px 5px;
+  padding: 2px 7px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1713,7 +1743,7 @@ body {
   left: 0;
   right: 0;
   top: 50%;
-  height: 1.5px;
+  height: 3px;
   background: rgb(var(--seq-accent-rgb));
   transform-origin: right center;
 }
@@ -1730,13 +1760,13 @@ body {
   transform: translateY(-50%);
   width: 0;
   height: 0;
-  border-top: 4px solid transparent;
-  border-bottom: 4px solid transparent;
-  border-left: 6px solid rgb(var(--seq-accent-rgb));
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid rgb(var(--seq-accent-rgb));
 }
 
 .sequence-message--async .sequence-message-line {
-  border-top: 1.5px dashed rgb(var(--seq-accent-rgb));
+  border-top: 3px dashed rgb(var(--seq-accent-rgb));
   background: none;
 }
 
@@ -1955,6 +1985,7 @@ body {
 }
 
 .diagram-node-box-name {
+  color: #102334;
   font-size: 1.05rem;
   font-weight: 600;
   white-space: normal;
@@ -1997,7 +2028,7 @@ body {
    of the box, so a top hairline separates it (the free-text prose) from the chrome above (title,
    meta chips) and lets the prose read as its own section. */
 .diagram-node-box-desc {
-  color: #8b93a7;
+  color: #263e52;
   font-size: 0.7rem;
   white-space: normal;
   overflow-wrap: anywhere;
@@ -2278,7 +2309,12 @@ body {
   min-width: 0;
   min-height: 0;
   overflow-x: auto;
+  scrollbar-width: none;
   gap: 6px;
+}
+
+.canvas-main-row::-webkit-scrollbar {
+  display: none;
 }
 
 /* The visible canvas box: positioning context for Fit All, the deleted-diff overlay and the trace
@@ -2310,8 +2346,9 @@ body {
   flex: 1;
   overflow: hidden;
   touch-action: none;
-  background-image: radial-gradient(var(--dot-grid) 1.3px, transparent 1.3px);
-  background-size: var(--canvas-grid-size, 24px) var(--canvas-grid-size, 24px);
+  background-color: #06101f;
+  background-image: linear-gradient(rgba(113, 162, 103, 0.32) 1px, transparent 1px), linear-gradient(90deg, rgba(113, 162, 103, 0.32) 1px, transparent 1px);
+  background-size: 28px 28px;
   background-position: var(--canvas-grid-x, 0px) var(--canvas-grid-y, 0px);
 }
 
@@ -2495,6 +2532,7 @@ body {
 }
 
 .block-name {
+  color: #102334;
   font-weight: 600;
   font-size: 1.05rem;
 }
@@ -2518,7 +2556,7 @@ body {
    DescriptionPopup — see descriptionPopupStore.ts). */
 .block-description {
   font-size: 0.75rem;
-  color: var(--text-2);
+  color: #263e52;
   white-space: normal;
   overflow-wrap: anywhere;
   display: -webkit-box;
@@ -2703,6 +2741,22 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Keep block glyphs legible and consistent across all diagram types, including brand marks. */
+.diagram-node-box .c1-block-icon,
+.diagram-node-box .node-icon-folder,
+.diagram-node-box .node-icon-file {
+  color: #f1f5fc;
+}
+
+.diagram-node-box .c1-brand-icon path {
+  fill: #f1f5fc !important;
+}
+
+.diagram-node-box .node-icon-badge {
+  background: #f1f5fc;
+  color: #172331;
 }
 
 .block-focus-button,
@@ -7006,6 +7060,17 @@ button[data-copy-state="idle"][aria-label]:hover:not(:disabled) {
 .canvas-group-frame-color-3 { --group-frame-rgb: 244, 114, 182; }
 .canvas-group-frame-color-4 { --group-frame-rgb: 167, 139, 250; }
 .canvas-group-frame-color-5 { --group-frame-rgb: 34, 211, 238; }
+
+/* Landing page diagram theme: keep the node palette authored in seed.ts while matching the
+   color-lab's connection and zone treatment. */
+.canvas-group-frame {
+  border-color: rgba(var(--group-frame-rgb, 148, 163, 184), 0.81);
+  background: rgba(var(--group-frame-rgb, 148, 163, 184), 0.08);
+}
+
+.canvas-group-frame-label {
+  color: rgba(var(--group-frame-rgb, 148, 163, 184), 0.9);
+}
 
 /* 054-diagram-flow-order: a Lane's soft background area (LaneArea.tsx) -- deliberately borderless,
    unlike .canvas-group-frame's dashed rectangle above, so a dense process diagram doesn't gain a

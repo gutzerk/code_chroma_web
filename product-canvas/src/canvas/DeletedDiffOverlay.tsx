@@ -21,6 +21,7 @@ function DeletedDiffItem({ diff, engineClient }: { diff: FunctionDiff; engineCli
       draggable
       onAccept={readOnly ? undefined : handleAccept}
       isAccepting={isAccepting}
+      acceptDisabled={Boolean((engineClient as EngineClient & { acceptDisabled?: boolean }).acceptDisabled)}
       acceptError={acceptError}
     />
   );

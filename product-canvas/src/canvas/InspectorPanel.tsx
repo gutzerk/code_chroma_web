@@ -255,6 +255,7 @@ function InspectorLevel({ entryId }: { entryId: string }) {
             className="block-code-view--inspector"
             onAccept={readOnly ? undefined : handleAccept}
             isAccepting={isAccepting}
+            acceptDisabled={Boolean((engineClient as typeof engineClient & { acceptDisabled?: boolean }).acceptDisabled)}
             acceptError={acceptError}
           />
         ) : (

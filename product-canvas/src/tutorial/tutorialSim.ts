@@ -68,6 +68,8 @@ class TutorialSimStore extends Store {
   fitCanvas = (): void => this.fitAll?.();
 
   private fitSelector: ((selector: string) => boolean) | null = null;
+  private centerNodes: ((nodeIds: string[]) => boolean) | null = null;
+  private centerSelector: ((selector: string) => boolean) | null = null;
 
   setFitSelector = (fit: ((selector: string) => boolean) | null): void => {
     this.fitSelector = fit;
@@ -75,6 +77,18 @@ class TutorialSimStore extends Store {
 
   /** Zooms the canvas in on the elements matching the selector; false while they are not laid out. */
   zoomToSelector = (selector: string): boolean => this.fitSelector?.(selector) ?? false;
+
+  setCenterNodes = (center: ((nodeIds: string[]) => boolean) | null): void => {
+    this.centerNodes = center;
+  };
+
+  centerCanvasNodes = (nodeIds: string[]): boolean => this.centerNodes?.(nodeIds) ?? false;
+
+  setCenterSelector = (center: ((selector: string) => boolean) | null): void => {
+    this.centerSelector = center;
+  };
+
+  centerCanvasSelector = (selector: string): boolean => this.centerSelector?.(selector) ?? false;
 
   private set(patch: Partial<SimSnapshot>): void {
     this.snapshot = { ...this.snapshot, ...patch };

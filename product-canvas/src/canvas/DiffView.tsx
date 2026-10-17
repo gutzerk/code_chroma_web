@@ -21,6 +21,8 @@ export interface DiffViewProps {
   onAccept?: (nodeId: string) => void;
   /** Disables the Accept button and swaps its label while the commit is in flight. */
   isAccepting?: boolean;
+  /** Keeps Accept visible but inactive for read-only demos. */
+  acceptDisabled?: boolean;
   /** Renders below the header when the last accept attempt failed. */
   acceptError?: string;
 }
@@ -38,6 +40,7 @@ export function DiffView({
   deleted,
   onAccept,
   isAccepting,
+  acceptDisabled,
   acceptError,
 }: DiffViewProps) {
   const { panelRef, dragHandleProps, resizeHandleProps, isDragging, isResizing, style } =
@@ -82,7 +85,7 @@ export function DiffView({
             type="button"
             className="diff-accept-button"
             data-testid="diff-accept-button"
-            disabled={isAccepting}
+            disabled={isAccepting || acceptDisabled}
             onClick={() => onAccept(diff.node_id)}
           >
             {isAccepting ? "Committing…" : "Accept"}

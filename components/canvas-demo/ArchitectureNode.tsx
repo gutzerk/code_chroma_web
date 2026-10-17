@@ -11,6 +11,11 @@ export type DemoComponent = {
   x: number; y: number; tint: string;
 };
 
+const TINT_FILLS: Record<string, string> = {
+  blue: '#263c56', cyan: '#25484d', violet: '#413452',
+  amber: '#49391f', green: '#254638', pink: '#483043',
+};
+
 /** Uses the product's drag hook, including its click threshold and zoom compensation.
  * The engine-backed CanvasNodeBox is replaced by a local, read-only data adapter.
  */
@@ -38,7 +43,7 @@ export default function ArchitectureNode({ component, index, selected, onOpen, o
   return (
     <article ref={nodeRef} data-architecture-node data-node-index={index}
       className={`${styles.architectureNode} diagram-node-box ${component.kind === "database" ? "node-shape-database" : ""} ${selected ? "block-inspector-target" : ""} ${drag.isDragging ? styles.nodeDragging : ""}`}
-      style={{ left: `calc(${component.x}% + ${drag.offset.x + keyboardOffset.x}px)`, top: `calc(${component.y}% + ${drag.offset.y + keyboardOffset.y}px)` }}
+      style={{ left: `calc(${component.x}% + ${drag.offset.x + keyboardOffset.x}px)`, top: `calc(${component.y}% + ${drag.offset.y + keyboardOffset.y}px)`, backgroundColor: TINT_FILLS[component.tint] ?? TINT_FILLS.blue }}
       role="group" tabIndex={0} aria-label={`${component.name}: open source code. Drag or use arrow keys to move.`}
       onPointerDown={elementDragPointerDown(drag.handleProps)}
       onClick={() => onOpen(index)}

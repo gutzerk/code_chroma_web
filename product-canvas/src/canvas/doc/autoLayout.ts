@@ -174,6 +174,15 @@ export function layoutSequence(
 
   // Participant columns (left-to-right, in element order) and their authored-id → column index.
   const participants = elements.filter((e) => stringMeta(e, "role") === "participant");
+  const compact = participants.some((element) => stringMeta(element, "compact") === "true");
+  // Homepage Sequence shares the Architecture camera scale. Give its compact variant enough
+  // horizontal and vertical breathing room to use a similar canvas footprint without zooming the
+  // camera when the user switches views.
+  const colW = compact ? 210 : SEQUENCE_LAYOUT.colW;
+  const headW = compact ? 190 : SEQUENCE_LAYOUT.headW;
+  const headH = compact ? 62 : SEQUENCE_LAYOUT.headH;
+  const rowH = compact ? 78 : SEQUENCE_LAYOUT.rowH;
+  const headGap = compact ? 28 : SEQUENCE_LAYOUT.headGap;
   const colByRef = new Map<string, number>();
   participants.forEach((element, index) => {
     colByRef.set(element.id, index);
@@ -182,11 +191,11 @@ export function layoutSequence(
   });
 
   participants.forEach((element, index) => {
-    const x = index * SEQUENCE_LAYOUT.colW + SEQUENCE_LAYOUT.colW / 2;
-    positions[element.id] = { x, y: SEQUENCE_LAYOUT.headH };
+    const x = index * colW + colW / 2;
+    positions[element.id] = { x, y: headH };
     // Center-anchored box (CanvasNodeBox positions by center). A participant head is a fixed,
     // capped width (`headW`) that never exceeds its column, so adjacent heads always keep a gap.
-    sizes[element.id] = { w: SEQUENCE_LAYOUT.headW, h: SEQUENCE_LAYOUT.headH };
+    sizes[element.id] = { w: headW, h: headH };
   });
 
   for (const element of elements) {
@@ -196,18 +205,18 @@ export function layoutSequence(
     const x2 = colByRef.get(String(rawMeta(element, "to") ?? ""));
     if (!Number.isFinite(order) || x1 === undefined || x2 === undefined) continue;
     const y =
-      SEQUENCE_LAYOUT.headH +
-      SEQUENCE_LAYOUT.headGap +
-      SEQUENCE_LAYOUT.rowH * (order - 1) +
-      SEQUENCE_LAYOUT.rowH / 2;
-    const xMid = (x1 * SEQUENCE_LAYOUT.colW + x2 * SEQUENCE_LAYOUT.colW) / 2 + SEQUENCE_LAYOUT.colW / 2;
+      headH +
+      headGap +
+      rowH * (order - 1) +
+      rowH / 2;
+    const xMid = (x1 * colW + x2 * colW) / 2 + colW / 2;
     positions[element.id] = { x: xMid, y };
     // A message keeps a thin row footprint (height = rowH). The vertical air comes from position,
     // not a fattened size: `headGap` pushes the very first line clear of the participant heads, while
     // the gap below the last line is the dashed DiagramFrame's own padding (DiagramFrame.tsx's
     // PADDING.bottom). Inflating `size.h` here made the outer message rects poke up into the heads and
     // pinch the bottom arrow against the frame -- don't fatten it.
-    sizes[element.id] = { w: Math.max(Math.abs(x1 - x2) * SEQUENCE_LAYOUT.colW, 40), h: SEQUENCE_LAYOUT.rowH };
+    sizes[element.id] = { w: Math.max(Math.abs(x1 - x2) * colW, 40), h: rowH };
   }
   return { positions, sizes };
 }

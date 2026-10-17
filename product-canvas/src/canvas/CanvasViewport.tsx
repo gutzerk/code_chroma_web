@@ -19,6 +19,10 @@ export interface CanvasViewportHandle {
   /** Returns false, without moving the camera, when `nodeId` isn't mounted yet — callers that need
    * the camera to end up centered (not just "tried once") retry off this. */
   centerOnNode: (nodeId: string) => boolean;
+  /** Centers a set of mounted nodes without changing the current zoom. */
+  centerOnNodes: (nodeIds: string[]) => boolean;
+  /** Centers mounted elements matching a selector without changing the current zoom. */
+  centerOnSelector: (selector: string) => boolean;
   focusOnNode: (nodeId: string) => void;
   fitToNode: (nodeId: string) => void;
   /** Fits the union of the given nodes' boxes. Returns true only once EVERY id was found in the
@@ -27,7 +31,7 @@ export interface CanvasViewportHandle {
   /** Fits the union of every mounted node, whatever is on the canvas — see the imperative handle. */
   fitToAllNodes: () => void;
   /** Zooms in on the union of every mounted element matching the CSS selector; false when none is laid out. */
-  fitToSelector: (selector: string) => boolean;
+  fitToSelector: (selector: string, zoomFactor?: number) => boolean;
   zoomIn: () => void;
   zoomOut: () => void;
   resetView: () => void;
@@ -341,6 +345,33 @@ export const CanvasViewport = forwardRef<CanvasViewportHandle, CanvasViewportPro
         }));
         return true;
       },
+      centerOnNodes(nodeIds: string[]) {
+        const viewportEl = viewportRef.current;
+        if (!viewportEl || nodeIds.length === 0) return false;
+        contentRef.current?.classList.remove("canvas-content--animated");
+        const viewportRect = viewportEl.getBoundingClientRect();
+        const targets = nodeIds
+          .map((nodeId) => viewportEl.querySelector<HTMLElement>(`[data-node-id="${CSS.escape(nodeId)}"]`))
+          .filter((el): el is HTMLElement => el !== null);
+        const { rect: unionRect } = unionRects(targets);
+        if (!unionRect) return false;
+        const dx = viewportRect.left + viewportRect.width / 2 - (unionRect.left + unionRect.width / 2);
+        const dy = viewportRect.top + viewportRect.height / 2 - (unionRect.top + unionRect.height / 2);
+        setView((v) => ({ ...v, x: v.x + dx, y: v.y + dy }));
+        return targets.length === nodeIds.length;
+      },
+      centerOnSelector(selector: string) {
+        const viewportEl = viewportRef.current;
+        if (!viewportEl) return false;
+        contentRef.current?.classList.remove("canvas-content--animated");
+        const viewportRect = viewportEl.getBoundingClientRect();
+        const { rect: unionRect } = unionRects(viewportEl.querySelectorAll<HTMLElement>(selector));
+        if (!unionRect) return false;
+        const dx = viewportRect.left + viewportRect.width / 2 - (unionRect.left + unionRect.width / 2);
+        const dy = viewportRect.top + viewportRect.height / 2 - (unionRect.top + unionRect.height / 2);
+        setView((v) => ({ ...v, x: v.x + dx, y: v.y + dy }));
+        return true;
+      },
       focusOnNode(nodeId: string) {
         // Clicking the same node's focus button again toggles back to wherever the view was
         // right before it was focused, instead of recomputing the same fit.
@@ -458,7 +489,7 @@ export const CanvasViewport = forwardRef<CanvasViewportHandle, CanvasViewportPro
         setView((v) => fitAtFixedScale(v, viewportRect, unionRect));
         playFocusAnimation();
       },
-      fitToSelector(selector: string): boolean {
+      fitToSelector(selector: string, zoomFactor = 1): boolean {
         const viewportEl = viewportRef.current;
         if (!viewportEl) return false;
         lastFocusedNodeIdRef.current = null;
@@ -467,7 +498,17 @@ export const CanvasViewport = forwardRef<CanvasViewportHandle, CanvasViewportPro
         const viewportRect = viewportEl.getBoundingClientRect();
         const { rect: unionRect } = unionRects(viewportEl.querySelectorAll<HTMLElement>(selector));
         if (!unionRect) return false;
-        setView((v) => fitAtFixedScale(v, viewportRect, unionRect));
+        setView((v) => {
+          const fitted = fitAtFixedScale(v, viewportRect, unionRect);
+          const factor = Number.isFinite(zoomFactor) ? clamp(zoomFactor, 1, 1.8) : 1;
+          const centerX = viewportRect.width / 2;
+          const centerY = viewportRect.height / 2;
+          return {
+            scale: fitted.scale * factor,
+            x: centerX - (centerX - fitted.x) * factor,
+            y: centerY - (centerY - fitted.y) * factor,
+          };
+        });
         playFocusAnimation();
         return true;
       },
@@ -478,6 +519,23 @@ export const CanvasViewport = forwardRef<CanvasViewportHandle, CanvasViewportPro
 
     function handleWheel(e: WheelEvent) {
       e.preventDefault();
+      if (new URLSearchParams(window.location.search).get("wheelzoom") === "on") {
+        const viewportEl = viewportRef.current;
+        if (!viewportEl) return;
+        const rect = viewportEl.getBoundingClientRect();
+        const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rect.height : 1;
+        const pointerX = e.clientX - rect.left;
+        const pointerY = e.clientY - rect.top;
+        const factor = Math.exp(-e.deltaY * unit * 0.0007);
+        setView((v) => {
+          const scale = clamp(v.scale * factor, MIN_SCALE, MAX_SCALE);
+          if (scale === v.scale) return v;
+          const logicalX = (pointerX - v.x) / v.scale;
+          const logicalY = (pointerY - v.y) / v.scale;
+          return { scale, x: pointerX - logicalX * scale, y: pointerY - logicalY * scale };
+        });
+        return;
+      }
       if (e.ctrlKey || e.metaKey) return;
       // Wheel events cannot bubble out of an iframe; forward them to the website.
       const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? window.innerHeight : 1;

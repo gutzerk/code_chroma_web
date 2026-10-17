@@ -1,202 +1,154 @@
 {
   "name": "Aurora AI · request to inference",
   "zones": [
-    "Public edge · TLS / identity",
-    "Kubernetes · ai-production namespace",
-    "Private data plane",
-    "Document processing & model providers"
+    "Client & API edge",
+    "Application services",
+    "Data & jobs",
+    "Private processing"
   ],
   "nodes": [
     {
       "name": "Client / SDK",
       "kind": "ui",
       "tint": "blue",
-      "description": "Streams chat responses over SSE; sends tenant-scoped access tokens and uploads documents.",
+      "description": "Sends chat requests and uploads documents.",
       "files": [
         0
       ],
-      "x": 150,
-      "y": 140,
-      "zone": 0
-    },
-    {
-      "name": "Load balancer",
-      "kind": "system",
-      "tint": "cyan",
-      "description": "TLS termination, WAF checks and health-aware distribution across two availability zones.",
-      "files": [
-        1
-      ],
-      "x": 490,
-      "y": 140,
+      "x": -439.0053711237927,
+      "y": 429.15788786792166,
       "zone": 0
     },
     {
       "name": "API Gateway",
       "kind": "api",
       "tint": "blue",
-      "description": "Request validation, tenant quotas and JWT enforcement. Routes /chat, /jobs and /documents.",
+      "description": "Validates access and routes chat and document jobs.",
       "files": [
         2
       ],
-      "x": 830,
-      "y": 140,
-      "zone": 0
-    },
-    {
-      "name": "Identity & RBAC",
-      "kind": "auth",
-      "tint": "violet",
-      "description": "OIDC / JWKS verification, tenant membership and role checks. Short-lived service identities.",
-      "files": [
-        3
-      ],
-      "x": 1170,
-      "y": 140,
+      "x": -22.02433933722407,
+      "y": 422.9165490856152,
       "zone": 0
     },
     {
       "name": "Chat API · 3 pods",
       "kind": "service",
       "tint": "blue",
-      "description": "mTLS + tenant guards inside each pod. Loads conversation history and streams model output.",
+      "description": "Loads chat history, retrieves context and streams replies.",
       "files": [
         4
       ],
-      "x": 150,
-      "y": 390,
+      "x": 436.09763583003814,
+      "y": 310.70966487160354,
       "zone": 1
     },
     {
       "name": "Workflow API · 2 pods",
       "kind": "service",
       "tint": "violet",
-      "description": "Authorizes batch jobs, stores idempotency keys and publishes durable ingestion tasks.",
+      "description": "Authorizes document jobs and queues processing tasks.",
       "files": [
         5
       ],
-      "x": 490,
-      "y": 390,
+      "x": 417.00611687095096,
+      "y": 762.0953548413485,
       "zone": 1
     },
     {
       "name": "RAG retrieval",
       "kind": "service",
       "tint": "cyan",
-      "description": "Tenant-filtered hybrid search, reranking and citation assembly. No cross-tenant context.",
+      "description": "Searches tenant documents and assembles citations.",
       "files": [
         6
       ],
-      "x": 830,
-      "y": 390,
+      "x": 440.8344260180235,
+      "y": 29.274264876271054,
       "zone": 1
     },
     {
       "name": "LLM router & policy",
       "kind": "system",
       "tint": "amber",
-      "description": "PII policy, token budgets, circuit breakers and provider fallback. Private data stays on internal models.",
+      "description": "Applies safety rules and routes requests to private models.",
       "files": [
         7
       ],
-      "x": 1170,
-      "y": 390,
+      "x": 1033.837642449118,
+      "y": 17.64445761144528,
       "zone": 1
     },
     {
       "name": "PostgreSQL",
       "kind": "database",
       "tint": "green",
-      "description": "Tenant membership, conversations and audit records. Row-level security and encrypted backups.",
+      "description": "Stores tenants, chat history and job status.",
       "files": [
         8
       ],
-      "x": 150,
-      "y": 640,
-      "zone": 2
-    },
-    {
-      "name": "Redis",
-      "kind": "cache",
-      "tint": "amber",
-      "description": "Atomic rate limits, short-lived identity caches and per-tenant token budgets.",
-      "files": [
-        9
-      ],
-      "x": 490,
-      "y": 640,
+      "x": 903.3704196578581,
+      "y": 454.94965200949594,
       "zone": 2
     },
     {
       "name": "Vector database",
       "kind": "database",
       "tint": "green",
-      "description": "Embeddings and searchable chunks partitioned by tenant. Hybrid similarity + metadata filtering.",
+      "description": "Stores embeddings and searchable document chunks.",
       "files": [
         10
       ],
-      "x": 830,
-      "y": 640,
+      "x": 897.3512197489111,
+      "y": 241.06736695881423,
       "zone": 2
     },
     {
       "name": "NATS JetStream",
       "kind": "queue",
       "tint": "pink",
-      "description": "Durable job streams, explicit acknowledgments and dead-letter handling after bounded retries.",
+      "description": "Queues document-processing jobs reliably.",
       "files": [
         11
       ],
-      "x": 1170,
-      "y": 640,
+      "x": 926.9065084276868,
+      "y": 769.6154973470713,
       "zone": 2
     },
     {
       "name": "Ingestion workers · 4 pods",
       "kind": "worker",
       "tint": "pink",
-      "description": "Service-account auth, document parsing, chunking and embeddings. Retries safely without duplicate writes.",
+      "description": "Parses, chunks and embeds uploaded documents.",
       "files": [
         12
       ],
-      "x": 150,
-      "y": 890,
+      "x": 1547.332452973807,
+      "y": 466.12034706136916,
       "zone": 3
     },
     {
       "name": "Object storage · S3",
       "kind": "database",
       "tint": "green",
-      "description": "Encrypted uploads, signed URLs and lifecycle retention. Separate object prefixes for each tenant.",
+      "description": "Stores encrypted source documents.",
       "files": [
         13
       ],
-      "x": 490,
-      "y": 890,
+      "x": 1550.01791038455,
+      "y": 808.0514203277063,
       "zone": 3
     },
     {
       "name": "Private inference · vLLM",
       "kind": "worker",
       "tint": "violet",
-      "description": "GPU-backed model pods behind a private endpoint. Embeddings + completions; no public egress.",
+      "description": "Runs private chat and embedding models.",
       "files": [
         14
       ],
-      "x": 830,
-      "y": 890,
-      "zone": 3
-    },
-    {
-      "name": "External LLM APIs",
-      "kind": "external_system",
-      "tint": "amber",
-      "description": "OpenAI-compatible / Anthropic APIs via controlled egress. Redacted prompts, request deadlines and usage metering.",
-      "files": [
-        15
-      ],
-      "x": 1170,
-      "y": 890,
+      "x": 1573.2976958324246,
+      "y": 17.815201649881587,
       "zone": 3
     }
   ],
@@ -209,107 +161,64 @@
     {
       "from": 1,
       "to": 2,
-      "label": "healthy replica"
+      "label": "chat"
+    },
+    {
+      "from": 1,
+      "to": 3,
+      "label": "jobs"
     },
     {
       "from": 2,
-      "to": 3,
-      "label": "JWT + RBAC"
+      "to": 6,
+      "label": "history",
+      "secondary": true
     },
     {
       "from": 2,
       "to": 4,
-      "label": "/v1/chat"
+      "label": "retrieve"
     },
     {
-      "from": 2,
+      "from": 4,
       "to": 5,
-      "label": "/v1/jobs"
-    },
-    {
-      "from": 2,
-      "to": 13,
-      "label": "signed upload"
+      "label": "context"
     },
     {
       "from": 3,
       "to": 8,
-      "label": "memberships"
-    },
-    {
-      "from": 2,
-      "to": 9,
-      "label": "rate limit"
-    },
-    {
-      "from": 4,
-      "to": 8,
-      "label": "history + audit"
-    },
-    {
-      "from": 4,
-      "to": 6,
-      "label": "retrieve context"
+      "label": "enqueue"
     },
     {
       "from": 4,
       "to": 7,
-      "label": "stream completion"
+      "label": "search"
     },
     {
       "from": 5,
       "to": 11,
-      "label": "enqueue job"
+      "label": "inference"
     },
     {
-      "from": 6,
-      "to": 10,
-      "label": "tenant search"
-    },
-    {
-      "from": 6,
-      "to": 14,
-      "label": "query embedding"
-    },
-    {
-      "from": 7,
+      "from": 8,
       "to": 9,
-      "label": "token budget"
+      "label": "deliver"
     },
     {
-      "from": 7,
-      "to": 14,
-      "label": "private inference"
-    },
-    {
-      "from": 7,
-      "to": 15,
-      "label": "approved fallback"
-    },
-    {
-      "from": 11,
-      "to": 12,
-      "label": "deliver / ack"
-    },
-    {
-      "from": 12,
-      "to": 13,
-      "label": "read document"
-    },
-    {
-      "from": 12,
-      "to": 14,
-      "label": "batch embeddings"
-    },
-    {
-      "from": 12,
+      "from": 9,
       "to": 10,
-      "label": "upsert chunks"
+      "label": "read"
     },
     {
-      "from": 5,
-      "to": 8,
-      "label": "job status"
+      "from": 9,
+      "to": 7,
+      "label": "upsert"
+    },
+    {
+      "from": 3,
+      "to": 6,
+      "label": "status",
+      "secondary": true
     }
   ]
 }

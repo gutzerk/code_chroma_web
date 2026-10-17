@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import styles from "./CodeArchitectureHero.module.css";
 import HeroInstallCommand from "./HeroInstallCommand";
 import CODE_SAMPLES from "./codeSamples.json";
@@ -21,9 +22,33 @@ const FILES = CODE_SAMPLES as CodeFile[];
 
 // Each source file has a destination of its own; related files form one component.
 const COMPONENTS = SCENARIO.nodes.map(node => ({ ...node, x: node.x / 13, y: node.y / 10 }));
-const CONNECTIONS = SCENARIO.connections.map(({ from, to }) => [from, to]);
+const CONNECTIONS = SCENARIO.connections.map(({ from, to, secondary }) => ({ from, to, secondary: Boolean(secondary) }));
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 const smooth = (value: number) => { const t = clamp(value); return t * t * (3 - 2 * t); };
+const DEFAULT_CANVAS_COLOR = "#0b1a2a";
+
+function hslToHex(hue: number, saturation: number, lightness: number) {
+  const s = saturation / 100;
+  const l = lightness / 100;
+  const chroma = (1 - Math.abs(2 * l - 1)) * s;
+  const segment = ((hue % 360) + 360) % 360 / 60;
+  const x = chroma * (1 - Math.abs(segment % 2 - 1));
+  const [r, g, b] = segment < 1 ? [chroma, x, 0] : segment < 2 ? [x, chroma, 0] : segment < 3 ? [0, chroma, x] : segment < 4 ? [0, x, chroma] : segment < 5 ? [x, 0, chroma] : [chroma, 0, x];
+  const offset = l - chroma / 2;
+  return `#${[r, g, b].map((channel) => Math.round((channel + offset) * 255).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function hexToHue(hex: string) {
+  const value = hex.replace("#", "");
+  const channels = [0, 2, 4].map((start) => parseInt(value.slice(start, start + 2), 16) / 255);
+  const [r, g, b] = channels;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  if (delta === 0) return 210;
+  const hue = max === r ? 60 * (((g - b) / delta) % 6) : max === g ? 60 * ((b - r) / delta + 2) : 60 * ((r - g) / delta + 4);
+  return Math.round((hue + 360) % 360);
+}
 
 function syntaxClass(line: string) {
   const trimmed = line.trim();
@@ -73,8 +98,29 @@ export default function CodeArchitectureHero() {
   const productLayout = useRef<{ x: number; y: number; width: number; height: number }[] | null>(null);
   const layoutRef = useRef<() => void>(() => {});
   const [productReady, setProductReady] = useState(false);
+  const [canvasColor, setCanvasColor] = useState(DEFAULT_CANVAS_COLOR);
+  const canvasHue = hexToHue(canvasColor);
   const updateLayout = useCallback(() => layoutRef.current(), []);
   const ignoreInteraction = useCallback(() => {}, []);
+
+  useEffect(() => {
+    const savedColor = window.localStorage.getItem("codechroma-canvas-color");
+    if (savedColor && /^#[0-9a-f]{6}$/i.test(savedColor)) {
+      setCanvasColor(savedColor.toLowerCase());
+      return;
+    }
+    const storedHue = window.localStorage.getItem("codechroma-canvas-hue");
+    if (storedHue !== null) {
+      const savedHue = Number(storedHue);
+      if (Number.isFinite(savedHue) && savedHue >= 0 && savedHue <= 360) setCanvasColor(hslToHex(savedHue, 58, 11));
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("codechroma-canvas-color", canvasColor);
+    window.localStorage.setItem("codechroma-canvas-hue", String(canvasHue));
+    frameRef.current?.contentDocument?.documentElement?.style.setProperty("--bg-canvas", canvasColor);
+  }, [canvasColor, canvasHue, productReady]);
 
   useEffect(() => {
     const onLayout = (event: MessageEvent) => {
@@ -114,7 +160,9 @@ export default function CodeArchitectureHero() {
       const scroll = Math.max(0, window.scrollY - sectionTop);
       const progress = clamp(scroll / (heroHeight * .9));
       const arrivals = COMPONENTS.map((_, group) => reducedMotion.matches ? 1 : smooth((progress - .75 - group / Math.max(1, COMPONENTS.length - 1) * .1) / .12));
-      const reveal = productLayout.current ? (reducedMotion.matches ? 1 : smooth((progress - .96) / .04)) : 0;
+      // Fade in the real app canvas as the code windows arrive. The separately rendered demo
+      // boxes below remain layout-only targets, so the user never sees a simplified duplicate.
+      const reveal = productLayout.current ? (reducedMotion.matches ? 1 : smooth((progress - .82) / .14)) : 0;
       if (frameRef.current) {
         frameRef.current.style.opacity = String(reveal);
         frameRef.current.style.pointerEvents = reveal > .99 ? "auto" : "none";
@@ -123,7 +171,17 @@ export default function CodeArchitectureHero() {
       cards.forEach((card, index) => {
         const group = COMPONENTS.findIndex((component) => component.files.includes(index));
         const destination = destinations[group];
-        if (!destination) return;
+        if (!destination) {
+          // Files whose diagram block was removed still need to leave their starting position.
+          const travel = reducedMotion.matches ? 1 : smooth(progress / .78);
+          const startX = section.clientWidth * (.5 + FILES[index].offset[0] / 100);
+          const startY = heroHeight * .5 + FILES[index].offset[1] * window.innerHeight / 100;
+          const endX = section.clientWidth * .5;
+          const endY = canvasTop + canvas.clientHeight * .5;
+          card.style.transform = `translate(-50%, -50%) translate3d(${startX + (endX - startX) * travel}px, ${startY + (endY - startY) * travel}px, 0) scale(${.84 * (1 - .15 * travel)})`;
+          card.style.opacity = String(1 - travel);
+          return;
+        }
         const component = COMPONENTS[group];
         const rank = component.files.indexOf(index);
         const travel = reducedMotion.matches ? 0 : smooth((progress - rank * .018) / (.78 + group / Math.max(1, COMPONENTS.length - 1) * .125));
@@ -141,25 +199,32 @@ export default function CodeArchitectureHero() {
         node.inert = true;
       });
       edges.forEach((edge, index) => {
-        const [from, to] = CONNECTIONS[index];
-        edge.style.opacity = String(Math.min(arrivals[from], arrivals[to]) * (1 - reveal));
+        const { from, to } = CONNECTIONS[index];
+        const lineOpacity = CONNECTIONS[index].secondary ? 0.72 : 0.95;
+        edge.style.opacity = String(Math.min(arrivals[from], arrivals[to]) * lineOpacity * (1 - reveal));
       });
     };
     const measure = () => {
       sectionTop = section.getBoundingClientRect().top + window.scrollY;
       heroHeight = section.querySelector<HTMLElement>(`[data-hero-screen]`)!.offsetHeight;
       canvasTop = canvas.offsetTop;
+      const canvasRect = canvas.getBoundingClientRect();
+      const frameRect = frameRef.current?.getBoundingClientRect();
       destinations = nodes.map((node, i) => {
         const target = productLayout.current?.[i];
-        if (target) {
-          node.style.left = `${target.x + target.width / 2}px`;
-          node.style.top = `${target.y + target.height / 2}px`;
+        if (target && frameRect) {
+          // The iframe reports viewport-local coordinates. Translate them into the page canvas
+          // coordinate space so the falling files land on blocks inside the inset app window.
+          const x = frameRect.left - canvasRect.left + target.x;
+          const y = frameRect.top - canvasRect.top + target.y;
+          node.style.left = `${x + target.width / 2}px`;
+          node.style.top = `${y + target.height / 2}px`;
           node.style.width = `${target.width}px`;
         }
         return { x: node.offsetLeft, y: node.offsetTop, width: node.offsetWidth, height: node.offsetHeight };
       });
       edges.forEach((edge, index) => {
-        const [from, to] = CONNECTIONS[index];
+        const { from, to } = CONNECTIONS[index];
         const a = destinations[from]; const b = destinations[to];
         const dx = b.x - a.x; const dy = b.y - a.y;
         const horizontal = Math.abs(dx) / Math.max(1, a.width) > Math.abs(dy) / Math.max(1, a.height);
@@ -214,15 +279,25 @@ export default function CodeArchitectureHero() {
         <div className={styles.canvasGrid} aria-hidden="true" />
         <div data-diagram className={styles.diagram} aria-hidden="true" inert>
           <svg className={styles.connections} viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <defs><marker id="architecture-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#648b9b" /></marker></defs>
-            {CONNECTIONS.map((_, index) => <path data-architecture-edge key={index} markerEnd="url(#architecture-arrow)" />)}
+            <defs>
+              <marker id="architecture-arrow-primary" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8bb6dc" /></marker>
+              <marker id="architecture-arrow-secondary" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#97a9ba" /></marker>
+            </defs>
+            {CONNECTIONS.map((connection, index) => <path data-architecture-edge className={connection.secondary ? styles.secondaryConnection : undefined} key={index} markerEnd={`url(#architecture-arrow-${connection.secondary ? "secondary" : "primary"})`} />)}
           </svg>
           {COMPONENTS.map((component, index) => (
             <ArchitectureNode key={component.name} component={component} index={index} selected={false} onOpen={ignoreInteraction} onLayout={updateLayout} onDescription={ignoreInteraction} />
           ))}
           </div>
-        <iframe ref={frameRef} className={styles.productFrame} src="/product-canvas/index.html?autoexpand=off" onLoad={() => frameRef.current?.contentWindow?.postMessage({ type: "codechroma-request-layout" }, window.location.origin)} title="CodeChroma canvas — interactive demo" allow="clipboard-write; fullscreen" allowFullScreen />
-        {!productReady && <p className={styles.productLoading} role="status">Loading CodeChroma canvas…</p>}
+        <div className={styles.appWindow}>
+          <div className={styles.appTitlebar} aria-label="CodeChroma macOS app window">
+            <div className={styles.macTrafficLights} aria-hidden="true"><i /><i /><i /></div>
+            <div className={styles.appWindowTitle}><strong>CodeChroma</strong><span>Architecture Canvas</span></div>
+            <Link href="/canvas/" className={styles.appWindowAction}>Open full canvas <span aria-hidden="true">↗</span></Link>
+          </div>
+          <iframe ref={frameRef} className={styles.productFrame} src="/product-canvas/index.html?autoexpand=off&initialZoom=1.4" onLoad={() => frameRef.current?.contentWindow?.postMessage({ type: "codechroma-request-layout" }, window.location.origin)} title="CodeChroma canvas — interactive demo" allow="clipboard-write; fullscreen" allowFullScreen />
+          {!productReady && <p className={styles.productLoading} role="status">Loading CodeChroma canvas…</p>}
+        </div>
       </section>
       </section>
   );

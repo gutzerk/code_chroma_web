@@ -114,6 +114,7 @@ export function DiagramFrame({ layer, label, members, sizes }: DiagramFrameProps
   }, []);
 
   if (!bounds) return null;
+  const fixed = members.length > 0 && members.every((member) => member.render === "sequence");
 
   const classes = [
     "canvas-diagram-frame",
@@ -142,7 +143,7 @@ export function DiagramFrame({ layer, label, members, sizes }: DiagramFrameProps
           />
         </span>
       }
-      interactiveProps={{
+      interactiveProps={fixed ? undefined : {
         role: "button",
         tabIndex: 0,
         "aria-label": `Drag to move the ${label} diagram`,

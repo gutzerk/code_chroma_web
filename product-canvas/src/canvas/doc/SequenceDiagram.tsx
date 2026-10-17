@@ -55,6 +55,7 @@ export function SequenceDiagram({ layer, elements }: SequenceDiagramProps) {
   }
 
   const accentByRef = new Map<string, string>();
+  const compact = participants.some(({ element }) => stringMeta(element, "compact") === "true");
   for (const { element } of participants) {
     const ref = stringMeta(element, "recipe_key") ?? element.id;
     accentByRef.set(ref, sequenceAccentRef(ref));
@@ -109,7 +110,7 @@ export function SequenceDiagram({ layer, elements }: SequenceDiagramProps) {
 
   return (
     <div
-      className="sequence-diagram"
+      className={`sequence-diagram${compact ? " sequence-diagram--compact" : ""}`}
       data-testid="sequence-diagram"
       data-layer={layer}
       style={{

@@ -245,6 +245,7 @@ export function NodePanels({
             resizable
             onAccept={readOnly ? undefined : handleAccept}
             isAccepting={isAccepting}
+            acceptDisabled={Boolean((engineClient as typeof engineClient & { acceptDisabled?: boolean }).acceptDisabled)}
             acceptError={acceptError}
           />
         ) : (

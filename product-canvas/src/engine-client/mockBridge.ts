@@ -48,6 +48,7 @@ import {
 import { FIXTURE_NODES, type FixtureNode } from "./fixtures";
 import { FIXTURE_CONNECTIONS } from "./fixtureConnections";
 import { STYLE_ALLOWED_KEYS } from "../canvas/authoredStyle";
+import architectureScenario from "../homepage/architectureScenario.json";
 
 /** Derived, not hardcoded, so regenerating the fixture can't leave the mock's coverage lying. */
 const FIXTURE_FILE_COUNT = Object.keys(FIXTURE_NODES).filter((id) =>
@@ -1480,29 +1481,104 @@ function epicsRecipeResult(index: EpicsIndex): MockRecipeResult {
   return { nodes, edges: [] };
 }
 
-/** A canned sequence diagram for mock-mode demo: participants + messages (each message a mock node
- * carrying `meta.role: "message"` plus from/to/order, exactly what SequenceDiagram.tsx reads). The
- * authored participants use string ids (`client`/`api`/`db`) and messages reference them by id --
- * the same wiring the real bridge's sequence reshape emits. */
+/** Homepage Plan: a realistic authorization change set using the same plan_kind metadata and
+ * pattern blocks as feature-plan diagrams elsewhere in the canvas. */
+function authorizationPlanResult(): MockRecipeResult {
+  const nodes: MockRecipeNode[] = [
+    {
+      key: "client", render: "pattern", label: "Web / Mobile Client",
+      description: "Starts sign-in and sends authenticated API requests.",
+      node_id: "homepage-group-0", meta: { order: "1", lane: "client", open_file_id: "homepage-impact-client", open_file_name: "client/session.py" },
+    },
+    {
+      key: "oauth-provider", render: "pattern", label: "OAuth 2.0 Provider",
+      description: "New identity provider using Authorization Code + PKCE; issues short-lived access tokens.",
+      meta: { order: "2", lane: "identity", plan_kind: "add", no_code_reason: "planned", details: "Add the OAuth 2.0 authorization-code flow with PKCE, token rotation, and a trusted issuer configuration.", open_file_id: "homepage-impact-oauth", open_file_name: "identity/authorization.py" },
+    },
+    {
+      key: "api-gateway", render: "pattern", label: "API Gateway",
+      description: "Routes API traffic and sends bearer tokens to the shared authentication check.",
+      node_id: "homepage-group-1", meta: { order: "3", lane: "edge", open_file_id: "homepage-impact-gateway", open_file_name: "gateway/routes.py" },
+    },
+    {
+      key: "get-current-user", render: "pattern", label: "get_current_user · JWT + scopes",
+      description: "Modify the existing request guard to verify issuer, audience, expiry, and required scopes before dispatch.",
+      node_id: "function::get_current_user", meta: { order: "4", lane: "auth", plan_kind: "modify", open_file_id: "homepage-impact-jwt-guard", open_file_name: "identity/authorization.py" },
+    },
+    {
+      key: "tenant-policy", render: "pattern", label: "Tenant Policy Service",
+      description: "New policy check resolves tenant roles and resource scopes for each request.",
+      meta: { order: "5", lane: "policy", plan_kind: "add", no_code_reason: "planned", details: "Add a tenant-aware policy service that maps verified identity claims to resource-level permissions.", open_file_id: "homepage-impact-tenant-policy", open_file_name: "storage/quotas.py" },
+    },
+    {
+      key: "postgres", render: "pattern", label: "PostgreSQL · roles & tenants",
+      description: "Existing source of tenant membership and role assignments.",
+      node_id: "homepage-group-6", meta: { order: "6", lane: "data", open_file_id: "homepage-impact-postgres", open_file_name: "storage/conversations.py" },
+    },
+    {
+      key: "protected-api", render: "pattern", label: "Protected API",
+      description: "Receives the request only after token and permission checks pass.",
+      node_id: "homepage-group-2", meta: { order: "7", lane: "service", open_file_id: "homepage-impact-protected-api", open_file_name: "services/chat.py" },
+    },
+    {
+      key: "legacy-auth", render: "pattern", label: "authenticate_user · password-only",
+      description: "Remove the legacy password-only request path after OAuth cutover.",
+      node_id: "function::authenticate_user", meta: { order: "2", lane: "retired", plan_kind: "delete", open_file_id: "homepage-impact-legacy-auth", open_file_name: "identity/authorization.py" },
+    },
+  ];
+  const edges: MockRecipeEdge[] = [
+    { from_key: "client", to_key: "oauth-provider", label: "SIGN-IN / PKCE", kind: "uses" },
+    { from_key: "oauth-provider", to_key: "client", label: "ACCESS TOKEN", kind: "uses" },
+    { from_key: "client", to_key: "api-gateway", label: "BEARER TOKEN", kind: "uses" },
+    { from_key: "api-gateway", to_key: "get-current-user", label: "AUTHENTICATE", kind: "uses" },
+    { from_key: "get-current-user", to_key: "tenant-policy", label: "CHECK SCOPES", kind: "uses" },
+    { from_key: "tenant-policy", to_key: "postgres", label: "LOAD TENANT ROLES", kind: "uses" },
+    { from_key: "get-current-user", to_key: "protected-api", label: "AUTHORIZED REQUEST", kind: "uses" },
+    { from_key: "client", to_key: "legacy-auth", label: "RETIRED PASSWORD FLOW", kind: "secondary" },
+  ];
+  return { nodes, edges };
+}
+
+/** Reshape the homepage architecture into the participant/message contract consumed by the native
+ * sequence renderer. Stable participant keys keep every message connected to the same service. */
 function sequenceRecipeResult(): MockRecipeResult {
-  const participants: MockRecipeNode[] = [
-    { key: "client", render: "sequence", label: "Client", node_id: "component::web/app.ts",
-      meta: { role: "participant" } },
-    { key: "api", render: "sequence", label: "API", node_id: "component::src/api/main.py",
-      meta: { role: "participant" } },
-    { key: "db", render: "sequence", label: "DB", node_id: "component::src/db/pg.py",
-      meta: { role: "participant" } },
-  ];
-  const messages: MockRecipeNode[] = [
-    { key: "m1", render: "sequence", label: "POST /checkout",
-      description: "POST /checkout with {cartId, items[], total} — the browser sends the cart to charge.",
-      meta: { role: "message", from: "client", to: "api", order: "1" } },
-    { key: "m2", render: "sequence", label: "SELECT orders",
-      description: "Brings back the user's open orders from PostgreSQL.",
-      meta: { role: "message", from: "api", to: "db", order: "2" } },
-    { key: "m3", render: "sequence", label: "200 OK",
-      meta: { role: "message", from: "api", to: "client", order: "3", return: "true" } },
-  ];
+  const participantKey = (index: number) => `service-${index}`;
+  // Keep the queue and object store in the architecture view, while the sequence view focuses on
+  // the request path and processing stages. Workflow -> workers represents the queued handoff.
+  const omittedParticipants = new Set([8, 10]);
+  const participants: MockRecipeNode[] = architectureScenario.nodes.flatMap((node, index) =>
+    omittedParticipants.has(index) ? [] : [{
+      key: participantKey(index),
+      render: "sequence" as const,
+      label: node.name,
+      description: node.name === "Ingestion workers · 4 pods"
+        ? `${node.description} Reads source documents from object storage.`
+        : node.description,
+      node_id: `homepage-group-${index}`,
+      meta: { role: "participant", compact: "true" },
+    }],
+  );
+  let order = 0;
+  const messages: MockRecipeNode[] = architectureScenario.connections.flatMap((connection, index) => {
+    if ((connection.from === 8 && connection.to === 9) || (connection.from === 9 && connection.to === 10)) return [];
+    const to = connection.from === 3 && connection.to === 8 ? 9 : connection.to;
+    if (omittedParticipants.has(connection.from) || omittedParticipants.has(to)) return [];
+    const from = architectureScenario.nodes[connection.from];
+    const target = architectureScenario.nodes[to];
+    return [{
+      key: `interaction-${index}`,
+      render: "sequence",
+      label: connection.label.toUpperCase(),
+      description: `${from.name} sends ${connection.label} to ${target.name}.`,
+      meta: {
+        role: "message",
+        from: participantKey(connection.from),
+        to: participantKey(to),
+        order: String(++order),
+        ...(connection.secondary ? { async: "true" } : {}),
+      },
+    }];
+  });
   return { nodes: [...participants, ...messages], edges: [] };
 }
 
@@ -1699,6 +1775,7 @@ export class MockBridgeEngineClient implements EngineClient {
     else if (recipe === "impact") built = diagramRecipeResult(MOCK_IMPACT, "impact");
     else if (recipe === "epics") built = epicsRecipeResult(MOCK_EPICS_INDEX);
     else if (recipe === "sequence") built = sequenceRecipeResult();
+    else if (recipe === "feature-plan/authorization") built = authorizationPlanResult();
     else if (recipe.startsWith("custom/")) {
       const typeId = recipe.slice("custom/".length);
       built = diagramRecipeResult(mockCustomDiagrams.get(typeId) ?? EMPTY_DIAGRAM, "custom");

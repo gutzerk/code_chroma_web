@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#081321">
+  <title>Canvas Color Lab · CodeChroma</title>
+  <style>
+    :root { color-scheme: dark; --page:#081321; --panel:#0c1a2b; --panel2:#102138; --line:#233951; --ink:#e7eff8; --muted:#91a4ba; --accent:#71b7ff; }
+    * { box-sizing:border-box }
+    body { margin:0; min-height:100vh; color:var(--ink); background:var(--page); font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif }
+    button,input,select { font:inherit }
+    button { color:inherit }
+    .topbar { position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:space-between; gap:18px; padding:12px 22px; border-bottom:1px solid var(--line); background:#081321ed; backdrop-filter:blur(16px) }
+    .brand { display:flex; align-items:center; gap:12px; min-width:240px }
+    .mark { display:grid; place-items:center; width:32px; height:32px; border:1px solid #3672a6; border-radius:9px; color:#9fd4ff; background:linear-gradient(145deg,#183b60,#0b2038); font-weight:800 }
+    .brand strong { display:block; font-size:13px; letter-spacing:.04em }
+    .brand small { color:var(--muted); font:10px ui-monospace,monospace; letter-spacing:.1em }
+    .top-actions { display:flex; align-items:center; gap:8px }
+    .button { border:1px solid #29435f; border-radius:7px; padding:8px 11px; color:#d8e8f7; background:#10243a; cursor:pointer }
+    .button:hover { border-color:#5795ce; background:#173252 }
+    .button.primary { border-color:#3678b4; background:#17416a }
+    .layout { display:grid; grid-template-columns:330px minmax(0,1fr); min-height:calc(100vh - 58px) }
+    .sidebar { min-width:0; border-right:1px solid var(--line); background:#0a1726 }
+    .sidebar-head { padding:20px 18px 14px; border-bottom:1px solid var(--line) }
+    .eyebrow { color:#77baf2; font:10px ui-monospace,monospace; letter-spacing:.14em; text-transform:uppercase }
+    h1 { margin:6px 0 5px; font-size:20px; letter-spacing:-.03em }
+    .intro { margin:0; color:var(--muted); font-size:12px }
+    .presets { display:flex; flex-wrap:wrap; gap:6px; padding:13px 16px; border-bottom:1px solid var(--line) }
+    .preset { border:1px solid #29435f; border-radius:999px; padding:6px 9px; color:#bdcde0; background:#102138; font-size:11px; cursor:pointer }
+    .preset:hover,.preset[aria-pressed="true"] { border-color:#68a9e5; color:#e7f4ff; background:#15314f }
+    #controls { max-height:calc(100vh - 250px); overflow:auto; padding:4px 0 24px; scrollbar-color:#31506c transparent; scrollbar-width:thin }
+    details { border-bottom:1px solid #192c40 }
+    summary { display:flex; align-items:center; justify-content:space-between; padding:13px 18px; color:#dce8f4; font-size:12px; font-weight:650; cursor:pointer; list-style:none }
+    summary::-webkit-details-marker { display:none }
+    summary:after { content:'＋'; color:#7694b2; font:14px ui-monospace,monospace }
+    details[open] summary:after { content:'−' }
+    .section-content { display:grid; gap:13px; padding:2px 18px 17px }
+    .control { display:grid; gap:6px; min-width:0 }
+    .control-head { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#becde0; font-size:11px }
+    .value { color:#86bff0; font:10px ui-monospace,monospace }
+    .color-row { display:grid; grid-template-columns:38px minmax(0,1fr); gap:8px }
+    input[type=color] { width:38px; height:30px; padding:3px; border:1px solid #314c68; border-radius:6px; background:#0d1c2d; cursor:pointer }
+    input[type=text].hex { width:100%; min-width:0; border:1px solid #29435e; border-radius:6px; padding:6px 8px; color:#dcecff; background:#0b1928; font:11px ui-monospace,monospace; text-transform:uppercase }
+    input[type=range] { width:100%; margin:2px 0; accent-color:#67b1f4; cursor:pointer }
+    select { width:100%; border:1px solid #29435e; border-radius:6px; padding:7px 8px; color:#dcecff; background:#0b1928 }
+    .toggle { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#becde0; font-size:11px }
+    .toggle input { width:16px; height:16px; accent-color:#55a8f1 }
+    .tint-row { padding-top:8px; border-top:1px solid #1c3045 }
+    .workspace { min-width:0; display:flex; flex-direction:column; padding:20px; gap:12px }
+    .stage-head { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:34px }
+    .stage-title { display:flex; align-items:center; gap:9px; color:#dbe8f5; font-size:12px }
+    .live { width:7px; height:7px; border-radius:50%; background:#61d6a7; box-shadow:0 0 12px #61d6a788 }
+    .stage-note { color:#849bb2; font:10px ui-monospace,monospace }
+    .stage { position:relative; flex:1; min-height:640px; overflow:hidden; border:1px solid #29425a; border-radius:12px; background:#0b1a2a; box-shadow:0 24px 70px #0006 }
+    iframe { display:block; width:100%; height:100%; min-height:640px; border:0; background:#0b1a2a }
+    .loading { position:absolute; inset:0; display:grid; place-items:center; color:#99adc2; background:#0b1a2a; pointer-events:none; transition:opacity .3s }
+    .loading.hidden { opacity:0 }
+    .loading span { padding:10px 14px; border:1px solid #31516f; border-radius:8px; background:#10243a; font:11px ui-monospace,monospace }
+    .statusbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; color:#8096ad; font:10px ui-monospace,monospace }
+    .statusbar code { color:#9ccbf4 }
+    .toast { position:fixed; right:20px; bottom:20px; z-index:9; padding:10px 14px; border:1px solid #3a6f99; border-radius:8px; color:#e4f3ff; background:#12304c; box-shadow:0 10px 30px #0006; opacity:0; transform:translateY(8px); transition:.18s; pointer-events:none }
+    .toast.show { opacity:1; transform:translateY(0) }
+    @media(max-width:900px) { .layout { grid-template-columns:290px minmax(0,1fr) } .workspace { padding:12px } .stage { min-height:580px } iframe { min-height:580px } }
+    @media(max-width:700px) { .topbar { padding:10px 12px; flex-wrap:wrap } .brand { min-width:0 } .top-actions { width:100%; justify-content:flex-end } .layout { display:flex; flex-direction:column } .sidebar { border-right:0; border-bottom:1px solid var(--line) } #controls { max-height:48vh } .workspace { min-height:70vh; padding:10px } .stage { min-height:65vh } iframe { min-height:65vh } .stage-note { display:none } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="mark">C</span><div><strong>CodeChroma</strong><small>CANVAS COLOR LAB</small></div></div>
+    <div class="top-actions">
+      <button class="button" id="reset">Reset</button>
+      <button class="button" id="export-json">Export JSON</button>
+      <button class="button primary" id="copy-css">Copy CSS</button>
+    </div>
+  </header>
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-head"><div class="eyebrow">Live theme editor</div><h1>Shape the canvas</h1><p class="intro">Настрой цвета, контраст и глубину. Все изменения применяются к настоящей диаграмме.</p></div>
+      <div class="presets" id="presets" aria-label="Color presets"></div>
+      <div id="controls"></div>
+    </aside>
+    <section class="workspace" aria-label="Live architecture canvas preview">
+      <div class="stage-head"><div class="stage-title"><span class="live"></span><strong>Aurora AI · request to inference</strong></div><div class="stage-note">LIVE PREVIEW · SAME CANVAS COMPONENT</div></div>
+      <div class="stage"><iframe id="canvas" title="Interactive architecture canvas preview" src="/product-canvas/index.html?color-lab=1"></iframe><div class="loading" id="loading"><span>Loading architecture canvas…</span></div></div>
+      <div class="statusbar"><span>Theme saved locally in this browser</span><span>Current canvas <code id="current-color">#0B1A2A</code></span></div>
+    </section>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+  <script>
+    const DEFAULTS = {
+      canvas:'#0b1a2a', grid:'#294766', gridMode:'none', gridOpacity:20, gridSize:32,
+      contrast:100, saturation:100,
+      fillOpacity:100, borderWidth:1.5, radius:8, shadowColor:'#000000', shadowOpacity:28, shadowX:0, shadowY:8, shadowBlur:28, shadowSpread:0, glow:0,
+      nameColor:'#e7eff8', nameSize:100, descColor:'#9fb2c7', descSize:100,
+      edgeColor:'#8bb6dc', edgeWidth:2, edgeOpacity:95, secondaryColor:'#97a9ba', secondaryOpacity:72, dashLength:6, dashGap:5,
+      casingColor:'#0b1a2a', casingWidth:5, labelColor:'#f4f8fc', labelSize:100,
+      groupColor:'#638cba', groupOpacity:38, groupFill:5, groupWidth:2, groupStyle:'dashed', showGroups:true,
+      fills:{blue:'#263c56',cyan:'#25484d',violet:'#413452',amber:'#49391f',green:'#254638',pink:'#483043'},
+      borders:{blue:'#659ad2',cyan:'#52b8bf',violet:'#ab8bdd',amber:'#d6ad66',green:'#63b69b',pink:'#c98cb9'}
+    };
+    const TINTS = {
+      blue:{name:'Blue · API & client', ids:[0,2,3]}, cyan:{name:'Cyan · routing & retrieval',ids:[1,5]}, violet:{name:'Violet · workflows & inference',ids:[4,12]},
+      amber:{name:'Amber · policy & external',ids:[6,13]}, green:{name:'Green · data stores',ids:[7,8,11]}, pink:{name:'Pink · event pipeline',ids:[9,10]}
+    };
+    const PRESETS = {
+      'Blueprint':{canvas:'#0b1a2a',fills:{blue:'#263c56',cyan:'#25484d',violet:'#413452',amber:'#49391f',green:'#254638',pink:'#483043'}},
+      'Deep navy':{canvas:'#06101f',fills:{blue:'#1a3150',cyan:'#153b42',violet:'#332746',amber:'#3c2b17',green:'#19392d',pink:'#39243a'},edgeColor:'#a7caff'},
+      'High contrast':{canvas:'#070b12',fills:{blue:'#314e70',cyan:'#28575d',violet:'#504064',amber:'#5b431e',green:'#2c5a45',pink:'#5c3a53'},nameColor:'#ffffff',descColor:'#d0deee',edgeColor:'#d2e8ff',edgeWidth:2.7,edgeOpacity:100,fillOpacity:100,shadowOpacity:45,shadowBlur:34},
+      'Nordic ice':{canvas:'#101b29',fills:{blue:'#273d57',cyan:'#1e414a',violet:'#3a3651',amber:'#483d2a',green:'#24453e',pink:'#493848'},edgeColor:'#b2d6e8',secondaryColor:'#809bb1',nameColor:'#edf8ff'},
+      'Warm dusk':{canvas:'#211a20',fills:{blue:'#34384a',cyan:'#294344',violet:'#49354c',amber:'#5a3f29',green:'#30483a',pink:'#563548'},edgeColor:'#e2bd9e',secondaryColor:'#bb9e96',nameColor:'#fff0e7',descColor:'#d0b7ad',casingColor:'#211a20'},
+      'Monochrome':{canvas:'#101820',fills:{blue:'#25323e',cyan:'#293740',violet:'#34343f',amber:'#3d3932',green:'#293a38',pink:'#3a333c'},borders:{blue:'#95a9bd',cyan:'#8daab0',violet:'#a2a1b4',amber:'#b5aa96',green:'#91aaa2',pink:'#b09aa9'},edgeColor:'#d1dce6',secondaryColor:'#93a3b2',groupColor:'#7890aa'}
+    };
+    const RANGES = {
+      gridOpacity:['Grid opacity',0,70,1,'%'], gridSize:['Grid spacing',12,100,1,'px'], contrast:['Diagram contrast',70,150,1,'%'], saturation:['Diagram saturation',0,180,1,'%'],
+      fillOpacity:['Block fill opacity',35,100,1,'%'], borderWidth:['Block border width',0.5,5,0.5,'px'], radius:['Block corner radius',0,24,1,'px'], shadowOpacity:['Shadow opacity',0,80,1,'%'],
+      shadowX:['Shadow horizontal offset',-20,20,1,'px'], shadowY:['Shadow vertical offset',-20,30,1,'px'], shadowBlur:['Shadow blur',0,80,1,'px'], shadowSpread:['Shadow spread',-10,24,1,'px'], glow:['Accent glow',0,40,1,'%'],
+      nameSize:['Name text scale',70,150,1,'%'], descSize:['Description scale',70,150,1,'%'], edgeWidth:['Primary line width',0.5,6,0.5,'px'], edgeOpacity:['Primary line opacity',15,100,1,'%'],
+      secondaryOpacity:['Secondary line opacity',0,100,1,'%'], dashLength:['Dash length',1,18,1,'px'], dashGap:['Dash gap',1,18,1,'px'], casingWidth:['Line casing width',0,12,0.5,'px'],
+      labelSize:['Connection label scale',70,150,1,'%'], groupOpacity:['Zone border opacity',0,100,1,'%'], groupFill:['Zone fill opacity',0,45,1,'%'], groupWidth:['Zone border width',0,6,0.5,'px']
+    };
+    const COLORS = {
+      canvas:['Canvas background','canvas'],grid:['Grid color','grid'],shadowColor:['Shadow color','shadowColor'],nameColor:['Node name color','nameColor'],descColor:['Node description color','descColor'],edgeColor:['Primary connection color','edgeColor'],secondaryColor:['Secondary connection color','secondaryColor'],casingColor:['Line casing color','casingColor'],labelColor:['Connection label color','labelColor'],groupColor:['Zone outline color','groupColor']
+    };
+    let settings = structuredClone(DEFAULTS);
+    try { const saved = JSON.parse(localStorage.getItem('codechroma-color-lab')||'null'); if (saved) settings = merge(DEFAULTS,saved); } catch {}
+    const controls = document.querySelector('#controls');
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    function merge(base,extra) { const out=structuredClone(base); for(const [k,v] of Object.entries(extra||{})) out[k]=v&&typeof v==='object'&&!Array.isArray(v)?{...out[k],...v}:v; return out; }
+    function section(title,contents,open=false) { return `<details ${open?'open':''}><summary>${title}</summary><div class="section-content">${contents}</div></details>`; }
+    function colorControl(key,label,sub=false) { return `<label class="control ${sub?'tint-row':''}"><span class="control-head"><span>${label}</span><span class="value" data-value="${key}"></span></span><span class="color-row"><input type="color" data-key="${key}" aria-label="${label}"><input class="hex" type="text" data-hex="${key}" maxlength="7" spellcheck="false" aria-label="${label} hex value"></span></label>`; }
+    function rangeControl(key) { const [label,min,max,step,unit]=RANGES[key]; return `<label class="control"><span class="control-head"><span>${label}</span><span class="value" data-value="${key}"></span></span><input type="range" data-key="${key}" min="${min}" max="${max}" step="${step}" data-unit="${unit}"></label>`; }
+    function selectControl(key,label,options) { return `<label class="control"><span class="control-head"><span>${label}</span></span><select data-key="${key}">${options.map(([v,n])=>`<option value="${v}">${n}</option>`).join('')}</select></label>`; }
+    function toggleControl(key,label) { return `<label class="toggle"><span>${label}</span><input type="checkbox" data-key="${key}"></label>`; }
+    const tintControls = Object.entries(TINTS).map(([key,tint])=>`<div class="tint-row"><div class="control-head"><strong>${tint.name}</strong></div>${colorControl(`fills.${key}`,'Fill',true)}${colorControl(`borders.${key}`,'Border',true)}</div>`).join('');
+    controls.innerHTML =
+      section('Canvas & atmosphere',colorControl('canvas',COLORS.canvas[0])+colorControl('grid',COLORS.grid[0])+selectControl('gridMode','Canvas texture',[['none','Solid · no grid'],['dots','Blueprint dots'],['lines','Blueprint lines']])+rangeControl('gridOpacity')+rangeControl('gridSize')+rangeControl('contrast')+rangeControl('saturation'),true)+
+      section('Block color palette',`<p class="intro">Каждый оттенок настраивается отдельно. Прозрачность и граница меняются общими ползунками ниже.</p>${tintControls}`)+
+      section('Block depth & shape',rangeControl('fillOpacity')+rangeControl('borderWidth')+rangeControl('radius')+colorControl('shadowColor',COLORS.shadowColor[0])+rangeControl('shadowOpacity')+rangeControl('shadowX')+rangeControl('shadowY')+rangeControl('shadowBlur')+rangeControl('shadowSpread')+rangeControl('glow'))+
+      section('Typography',colorControl('nameColor',COLORS.nameColor[0])+rangeControl('nameSize')+colorControl('descColor',COLORS.descColor[0])+rangeControl('descSize'))+
+      section('Connections & labels',colorControl('edgeColor',COLORS.edgeColor[0])+rangeControl('edgeWidth')+rangeControl('edgeOpacity')+colorControl('secondaryColor',COLORS.secondaryColor[0])+rangeControl('secondaryOpacity')+rangeControl('dashLength')+rangeControl('dashGap')+colorControl('casingColor',COLORS.casingColor[0])+rangeControl('casingWidth')+colorControl('labelColor',COLORS.labelColor[0])+rangeControl('labelSize'))+
+      section('Zones / group frames',colorControl('groupColor',COLORS.groupColor[0])+rangeControl('groupOpacity')+rangeControl('groupFill')+rangeControl('groupWidth')+selectControl('groupStyle','Zone outline style',[['dashed','Dashed'],['solid','Solid'],['dotted','Dotted']])+toggleControl('showGroups','Show zone frames'));
+    const presets = document.querySelector('#presets');
+    presets.innerHTML=Object.keys(PRESETS).map((name,i)=>`<button class="preset" type="button" data-preset="${escapeHtml(name)}" aria-pressed="${i===0}">${escapeHtml(name)}</button>`).join('');
+    const getValue = (path) => path.split('.').reduce((obj,key)=>obj?.[key],settings);
+    const setValue = (path,value) => { const keys=path.split('.'); let obj=settings; for(const key of keys.slice(0,-1)) obj=obj[key]; obj[keys.at(-1)]=value; };
+    function updateControls() {
+      document.querySelectorAll('[data-key]').forEach(input=>{const value=getValue(input.dataset.key); if(input.type==='checkbox') input.checked=Boolean(value); else input.value=value;});
+      document.querySelectorAll('[data-hex]').forEach(input=>input.value=getValue(input.dataset.hex).toUpperCase());
+      document.querySelectorAll('[data-value]').forEach(output=>{const key=output.dataset.value; output.textContent=RANGES[key]?`${getValue(key)}${RANGES[key][4]}`:getValue(key).toUpperCase();});
+      document.querySelector('#current-color').textContent=settings.canvas.toUpperCase();
+    }
+    const asRgba=(hex,alpha=1)=>{const h=hex.replace('#','');return `rgba(${parseInt(h.slice(0,2),16)}, ${parseInt(h.slice(2,4),16)}, ${parseInt(h.slice(4,6),16)}, ${Math.max(0,Math.min(1,alpha))})`;};
+    function buildCss() {
+      const selectors=Object.entries(TINTS).map(([tint,data])=>data.ids.map(i=>`[data-node-id="homepage-group-${i}"]`).join(',')).join(',');
+      const perTint=Object.entries(TINTS).map(([tint,data])=>`${data.ids.map(i=>`[data-node-id="homepage-group-${i}"]`).join(',')} { background-color:${asRgba(settings.fills[tint],settings.fillOpacity/100)} !important; border-color:${settings.borders[tint]} !important; }`).join('\n');
+      const texture=settings.gridMode==='dots'?`radial-gradient(${settings.grid} ${Math.max(1,settings.gridOpacity/18)}px, transparent ${Math.max(1,settings.gridOpacity/18)}px)`:`linear-gradient(${asRgba(settings.grid,settings.gridOpacity/100)} 1px, transparent 1px),linear-gradient(90deg,${asRgba(settings.grid,settings.gridOpacity/100)} 1px,transparent 1px)`;
+      const bgImage=settings.gridMode==='none'?'none':texture;
+      const width=settings.gridMode==='dots'?`${settings.gridSize}px ${settings.gridSize}px`:`${settings.gridSize}px ${settings.gridSize}px`;
+      return `/* CodeChroma Canvas Color Lab — generated theme */
+.canvas-viewport { background-color:${settings.canvas} !important; background-image:${bgImage} !important; background-size:${width} !important; }
+.canvas-content { filter:contrast(${settings.contrast}%) saturate(${settings.saturation}%) !important; }
+${selectors} { border-width:${settings.borderWidth}px !important; border-radius:${settings.radius}px !important; box-shadow:${settings.shadowX}px ${settings.shadowY}px ${settings.shadowBlur}px ${settings.shadowSpread}px ${asRgba(settings.shadowColor,settings.shadowOpacity/100)}, 0 0 ${settings.glow}px ${asRgba(settings.edgeColor,settings.glow/300)} !important; }
+${perTint}
+.diagram-node-box-name { color:${settings.nameColor} !important; font-size:calc(1.05rem * ${settings.nameSize/100}) !important; }
+.diagram-node-box-desc { color:${settings.descColor} !important; font-size:calc(.7rem * ${settings.descSize/100}) !important; }
+.c1-relationship-path { stroke:${settings.edgeColor} !important; stroke-width:${settings.edgeWidth}px !important; opacity:${settings.edgeOpacity/100} !important; }
+.c1-relationship-path--secondary { stroke:${settings.secondaryColor} !important; stroke-width:${settings.edgeWidth}px !important; stroke-dasharray:${settings.dashLength} ${settings.dashGap} !important; opacity:${settings.secondaryOpacity/100} !important; }
+.c1-relationship-casing { stroke:${settings.casingColor} !important; stroke-width:${settings.casingWidth}px !important; }
+.c1-relationship-label { fill:${settings.labelColor} !important; font-size:calc(.7rem * ${settings.labelSize/100}) !important; }
+.connector-label-chip { fill:${settings.canvas} !important; }
+.canvas-group-frame { border-color:${asRgba(settings.groupColor,settings.groupOpacity/100)} !important; background:${asRgba(settings.groupColor,settings.groupFill/100)} !important; border-width:${settings.groupWidth}px !important; border-style:${settings.groupStyle} !important; ${settings.showGroups?'':'display:none !important;'} }
+.canvas-group-frame-label { color:${asRgba(settings.groupColor,settings.groupOpacity/100)} !important; }`;
+    }
+    const iframe=document.querySelector('#canvas'); let themeStyle;
+    function apply() {
+      updateControls();
+      try { const doc=iframe.contentDocument; if(!doc) return; if(!themeStyle||themeStyle.ownerDocument!==doc){themeStyle=doc.createElement('style');themeStyle.id='codechroma-color-lab-theme';doc.head.append(themeStyle);} themeStyle.textContent=buildCss(); } catch(error) { console.warn('Canvas theme could not be applied',error); }
+      localStorage.setItem('codechroma-color-lab',JSON.stringify(settings));
+    }
+    document.addEventListener('input',event=>{const el=event.target; if(el.matches('[data-key]')) {const key=el.dataset.key; setValue(key,el.type==='checkbox'?el.checked:el.type==='range'?Number(el.value):el.value); if(el.type==='range') document.querySelector(`[data-value="${key}"]`).textContent=`${el.value}${el.dataset.unit||''}`; if(el.type==='color') document.querySelector(`[data-hex="${key}"]`).value=el.value.toUpperCase(); apply();} else if(el.matches('[data-hex]')) {const hex=el.value.trim(); if(/^#[\da-f]{6}$/i.test(hex)){setValue(el.dataset.hex,hex.toLowerCase());document.querySelector(`[data-key="${el.dataset.hex}"]`).value=hex;apply();}}});
+    document.addEventListener('change',event=>{const el=event.target;if(el.matches('[data-key]')){setValue(el.dataset.key,el.type==='checkbox'?el.checked:el.type==='range'?Number(el.value):el.value);apply();}});
+    presets.addEventListener('click',event=>{const button=event.target.closest('[data-preset]');if(!button)return;settings=merge(DEFAULTS,PRESETS[button.dataset.preset]);presets.querySelectorAll('.preset').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));apply();});
+    document.querySelector('#reset').addEventListener('click',()=>{settings=structuredClone(DEFAULTS);presets.querySelectorAll('.preset').forEach((b,i)=>b.setAttribute('aria-pressed',String(i===0)));apply();notify('Default theme restored');});
+    document.querySelector('#export-json').addEventListener('click',()=>download('codechroma-canvas-theme.json',JSON.stringify(settings,null,2),'application/json'));
+    document.querySelector('#copy-css').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(buildCss());notify('CSS copied to clipboard');}catch{download('codechroma-canvas-theme.css',buildCss(),'text/css');notify('CSS downloaded');}});
+    function download(name,contents,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([contents],{type}));a.download=name;a.click();URL.revokeObjectURL(a.href);}
+    let toastTimer;function notify(message){const toast=document.querySelector('#toast');toast.textContent=message;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),1800);}
+    iframe.addEventListener('load',()=>{document.querySelector('#loading').classList.add('hidden');apply();setTimeout(apply,600);});
+    updateControls();setTimeout(apply,1000);
+  </script>
+</body>
+</html>

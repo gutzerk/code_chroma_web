@@ -41,7 +41,11 @@ export function CanvasEdges({ doc, sizes, onOpenOrigin }: CanvasEdgesProps) {
   const rectByKey = new Map<string, Rect>(
     Object.values(doc.elements).map((element) => [element.id, elementRect(element, sizes)]),
   );
-  const edges = layoutDiagramEdges(Object.values(doc.edges), rectByKey);
+  const sourceEdges = Object.values(doc.edges);
+  const routedEdges = doc.doc_id === "homepage"
+    ? [...sourceEdges].sort((a, b) => Number(a.kind === "secondary") - Number(b.kind === "secondary"))
+    : sourceEdges;
+  const edges = layoutDiagramEdges(routedEdges, rectByKey);
 
   return (
     <>
@@ -58,7 +62,13 @@ export function CanvasEdges({ doc, sizes, onOpenOrigin }: CanvasEdgesProps) {
           markerId={CANVAS_ARROW_MARKER_ID}
           fromNodeId={edge.from}
           toNodeId={edge.to}
-          variantSuffix=" --custom"
+          variantSuffix={edge.kind === "secondary"
+            ? " --custom --secondary"
+            : edge.kind === "impact"
+              ? " --custom --impact"
+              : edge.kind === "impact-secondary"
+                ? " --custom --impact --secondary"
+                : " --custom"}
           isHero={edge.hero}
           style={edge.style}
           origin={edge.origin}

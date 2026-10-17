@@ -279,16 +279,6 @@ export function CanvasNodeBox({ element, onMeasure }: CanvasNodeBoxProps) {
     const workItemId = isEpicBrief
       ? (stringMeta(element, "spec_of") ?? stringMeta(element, "recipe_key"))
       : undefined;
-    // A Planned block's add/create role (055-diagram-feature-plan) has no real code behind it --
-    // InspectorPanel would otherwise open and report it "no longer exists", the wrong message for
-    // something that never existed yet. Route to the description popup instead, same as the "?"
-    // button below. modify/delete point at real, already-existing code, so they fall through to the
-    // normal Inspector path unchanged.
-    const planKind = stringMeta(element, "plan_kind");
-    if (planKind === "add" || planKind === "create") {
-      descriptionPopupStore.open(element.label, stringMeta(element, "details") ?? element.description ?? "");
-      return;
-    }
     // A box the resolver stamped with `meta.no_code_reason` (diagram_resolver.py) has no real code
     // behind it -- conceptual (no path ever authored) or unresolved (an authored path that failed) --
     // so it opens the same description popup as a Planned block, with a reason-specific message,
@@ -297,6 +287,29 @@ export function CanvasNodeBox({ element, onMeasure }: CanvasNodeBoxProps) {
     const noCodeReason = stringMeta(element, "no_code_reason");
     if (noCodeReason === "conceptual" || noCodeReason === "unresolved" || noCodeReason === "external") {
       descriptionPopupStore.open(element.label, noCodeReasonMessage(element, noCodeReason));
+      return;
+    }
+    // The landing-page architecture cards each represent a code area. Open that area's first
+    // concrete source file directly so visitors can read code immediately instead of drilling
+    // through a one-file list in the inspector.
+    const directFileId = stringMeta(element, "open_file_id");
+    if (directFileId) {
+      if (isInspectorTarget) {
+        inspectorStore.close();
+        return;
+      }
+      inspectorStore.open(
+        directFileId,
+        stringMeta(element, "open_file_name") ?? element.label,
+        element.id,
+      );
+      return;
+    }
+    // A planned add/create without an authored source file has no code to open yet, so show its
+    // implementation notes. When `open_file_id` exists, the code view above takes precedence.
+    const planKind = stringMeta(element, "plan_kind");
+    if (planKind === "add" || planKind === "create") {
+      descriptionPopupStore.open(element.label, stringMeta(element, "details") ?? element.description ?? "");
       return;
     }
     // Falls through to the Inspector for a real, resolved node_id -- InspectorPanel's own
@@ -347,6 +360,7 @@ export function CanvasNodeBox({ element, onMeasure }: CanvasNodeBoxProps) {
       data-testid="canvas-node-box"
       data-canvas-element
       data-node-id={element.node_id ?? undefined}
+      data-layer={element.layer}
       // The marquee's own lookup key (CanvasViewport.tsx) -- selectionStore/useIsSelected key this
       // box by its own canvas-doc id, not `data-node-id` (the engine node id used for focus/fit,
       // absent entirely for a synthetic C1 System/Actor box) -- a marquee matching on that instead

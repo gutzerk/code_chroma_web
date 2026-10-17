@@ -147,7 +147,14 @@ export function RootCanvas() {
   // on the impact layer's presence, like useImpactChangesSidecar's review fetch below — with no
   // impact layer there's nothing to annotate, so the deterministic diff/status GETs stay idle.
   useImpactDiffSync(engineClient, hasImpactLayer);
-  const impactReview = useImpactChangesSidecar(engineClient, isDiffActive, !isReadOnly);
+  const impactReviewAlwaysOn = Boolean(
+    (engineClient as typeof engineClient & { alwaysShowImpactChanges?: boolean }).alwaysShowImpactChanges,
+  );
+  const impactReview = useImpactChangesSidecar(
+    engineClient,
+    isDiffActive || impactReviewAlwaysOn,
+    !isReadOnly,
+  );
   const impactReviewOutput = useSkillOutput(engineClient, "impact-changes", impactReview.state);
   const traceState = useTraceState();
   const isTraceActive = traceState.isActive;
@@ -180,6 +187,7 @@ export function RootCanvas() {
   // First-load auto-expand is on by default; `?autoexpand=off` disables it (used by e2e specs that
   // drive manual expand/collapse from a known-collapsed start).
   const autoExpandEnabled = params.get("autoexpand") !== "off";
+  const initialZoomFactor = Number(params.get("initialZoom") ?? "1");
 
   useEffect(() => {
     let cancelled = false;
@@ -231,7 +239,7 @@ export function RootCanvas() {
     let cancelled = false;
     const recenter = () => {
       if (cancelled) return;
-      const centered = viewportRef.current?.fitToSelector('[data-canvas-element]') ?? false;
+      const centered = viewportRef.current?.fitToSelector('[data-canvas-element]', initialZoomFactor) ?? false;
       frame += 1;
       if (!centered && frame < CAMERA_RECENTER_MAX_FRAMES) requestAnimationFrame(recenter);
     };
@@ -266,7 +274,7 @@ export function RootCanvas() {
         if (restoredView) camera.release();
         else frameFitTo([id]);
       });
-  }, [rootNode, engineClient, autoExpandEnabled, frameFitTo, camera]);
+  }, [rootNode, engineClient, autoExpandEnabled, initialZoomFactor, frameFitTo, camera]);
 
   // View-agnostic on purpose: the C1 view renders no root block, so targeting rootNode here was a
   // silent no-op there. fitToAllNodes unions whatever is actually mounted in either view.
@@ -278,6 +286,14 @@ export function RootCanvas() {
   useEffect(() => {
     tutorialSimStore.setFitSelector((selector) => viewportRef.current?.fitToSelector(selector) ?? false);
     return () => tutorialSimStore.setFitSelector(null);
+  }, []);
+  useEffect(() => {
+    tutorialSimStore.setCenterNodes((nodeIds) => viewportRef.current?.centerOnNodes(nodeIds) ?? false);
+    return () => tutorialSimStore.setCenterNodes(null);
+  }, []);
+  useEffect(() => {
+    tutorialSimStore.setCenterSelector((selector) => viewportRef.current?.centerOnSelector(selector) ?? false);
+    return () => tutorialSimStore.setCenterSelector(null);
   }, []);
 
   // A click on a row in the ProjectTree sidebar: reveal the node's ancestors (expand the canvas
