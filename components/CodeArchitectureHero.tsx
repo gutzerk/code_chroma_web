@@ -95,6 +95,7 @@ export default function CodeArchitectureHero() {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLElement>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const iframeReadyRef = useRef(false);
   const productLayout = useRef<{ x: number; y: number; width: number; height: number }[] | null>(null);
   const layoutRef = useRef<() => void>(() => {});
   const [productReady, setProductReady] = useState(false);
@@ -133,6 +134,7 @@ export default function CodeArchitectureHero() {
       const blocks = event.data.blocks;
       if (!Array.isArray(blocks) || blocks.length !== COMPONENTS.length || !blocks.every(block => block && [block.x, block.y, block.width, block.height].every(Number.isFinite))) return;
       productLayout.current = blocks;
+      iframeReadyRef.current = true;
       setProductReady(true);
       layoutRef.current();
     };
@@ -162,11 +164,11 @@ export default function CodeArchitectureHero() {
       const arrivals = COMPONENTS.map((_, group) => reducedMotion.matches ? 1 : smooth((progress - .75 - group / Math.max(1, COMPONENTS.length - 1) * .1) / .12));
       // Fade in the real app canvas as the code windows arrive. The separately rendered demo
       // boxes below remain layout-only targets, so the user never sees a simplified duplicate.
-      const reveal = productLayout.current ? (reducedMotion.matches ? 1 : smooth((progress - .82) / .14)) : 0;
+      const reveal = iframeReadyRef.current ? (reducedMotion.matches ? 1 : smooth((progress - .82) / .14)) : 0;
       if (frameRef.current) {
         frameRef.current.style.opacity = String(reveal);
-        frameRef.current.style.pointerEvents = reveal > .99 ? "auto" : "none";
-        frameRef.current.inert = reveal < .99;
+        frameRef.current.style.pointerEvents = reveal > 0 ? "auto" : "none";
+        frameRef.current.inert = reveal <= 0;
       }
       cards.forEach((card, index) => {
         const group = COMPONENTS.findIndex((component) => component.files.includes(index));
@@ -295,7 +297,7 @@ export default function CodeArchitectureHero() {
             <div className={styles.appWindowTitle}><strong>CodeChroma</strong><span>Architecture Canvas</span></div>
             <Link href="/canvas/" className={styles.appWindowAction}>Open full canvas <span aria-hidden="true">↗</span></Link>
           </div>
-          <iframe ref={frameRef} className={styles.productFrame} src="/product-canvas/index.html?autoexpand=off&initialZoom=1.4" onLoad={() => frameRef.current?.contentWindow?.postMessage({ type: "codechroma-request-layout" }, window.location.origin)} title="CodeChroma canvas — interactive demo" allow="clipboard-write; fullscreen" allowFullScreen />
+          <iframe ref={frameRef} className={styles.productFrame} src="/product-canvas/index.html?autoexpand=off&initialZoom=1.4" onLoad={() => { iframeReadyRef.current = true; setProductReady(true); frameRef.current?.contentWindow?.postMessage({ type: "codechroma-request-layout" }, window.location.origin); layoutRef.current(); }} title="CodeChroma canvas — interactive demo" allow="clipboard-write; fullscreen" allowFullScreen />
           {!productReady && <p className={styles.productLoading} role="status">Loading CodeChroma canvas…</p>}
         </div>
       </section>

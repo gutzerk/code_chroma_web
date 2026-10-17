@@ -1,6 +1,6 @@
 import { FIXTURE_NODES, type FixtureNode } from '../engine-client/fixtures';
 import { MockBridgeEngineClient } from '../engine-client/mockBridge';
-import type { CanvasBatch, CanvasBatchResult, CanvasDoc, CanvasElement, FunctionDiff, ImpactChanges } from '../state/types';
+import type { CanvasBatch, CanvasBatchResult, CanvasDoc, CanvasElement, CanvasPing, FunctionDiff, ImpactChanges } from '../state/types';
 import type { SidecarKind, SidecarPayload } from '../engine-client/EngineClient';
 import samples from './codeSamples.json';
 import scenario from './architectureScenario.json';
@@ -8,6 +8,7 @@ import scenario from './architectureScenario.json';
 export const groups = scenario.nodes;
 const connections = scenario.connections;
 const LAYOUT_STORAGE_KEY = 'codechroma-homepage-layout-v1';
+const CANVAS_DOC_STORAGE_KEY = 'codechroma-homepage-canvas-v1';
 
 const HOMEPAGE_IMPACT_BLOCKS = [
   { key: 'client', label: 'Web / Mobile Client', description: 'Starts OAuth sign-in and sends the access token with each request.', status: 'context', kind: 'ui', node_id: 'homepage-impact-client', sample: 0, fill: '#183653', border: '#6f9bc2' },
@@ -112,6 +113,21 @@ function readSavedPositions(): SavedPositions {
   }
 }
 
+function parseSavedCanvasDoc(raw: string | null): CanvasDoc | null {
+  if (!raw) return null;
+  try {
+    const value: unknown = JSON.parse(raw);
+    if (!value || typeof value !== 'object') return null;
+    const doc = value as Partial<CanvasDoc>;
+    if (doc.schema_version !== 1 || doc.doc_id !== 'homepage'
+      || !doc.elements || typeof doc.elements !== 'object'
+      || !doc.edges || typeof doc.edges !== 'object') return null;
+    return doc as CanvasDoc;
+  } catch {
+    return null;
+  }
+}
+
 function ref(id: string, name: string, parent: string | null, children: string[], file?: typeof samples[number]): FixtureNode {
   return { node_id: id, name, level: file ? 'file' : 'folder', parent_id: parent,
     has_children: children.length > 0, child_count: children.length, children,
@@ -141,6 +157,32 @@ export class HomepageEngineClient extends MockBridgeEngineClient {
   readonly alwaysShowImpactChanges = true;
   readonly acceptDisabled = true;
 
+  constructor() {
+    super();
+    window.addEventListener('storage', this.handleSharedCanvasStorage);
+  }
+
+  private readonly handleSharedCanvasStorage = (event: StorageEvent) => {
+    if (event.key !== CANVAS_DOC_STORAGE_KEY) return;
+    const doc = parseSavedCanvasDoc(event.newValue);
+    if (!doc) return;
+    this.canvasDoc = doc;
+    this.emit<CanvasPing>('canvas', {
+      type: 'canvas',
+      batch_id: `shared-storage-${Date.now()}`,
+      affected: Object.keys(doc.elements),
+      new_elements: [],
+    });
+  };
+
+  private persistCanvasDoc() {
+    try {
+      window.localStorage.setItem(CANVAS_DOC_STORAGE_KEY, JSON.stringify(this.canvasDoc));
+    } catch {
+      // The canvas remains usable if browser storage is unavailable or full.
+    }
+  }
+
   override async getDiff(signal?: AbortSignal): Promise<FunctionDiff[]> {
     const existing = await super.getDiff(signal);
     const snippets: FunctionDiff[] = [
@@ -155,6 +197,11 @@ export class HomepageEngineClient extends MockBridgeEngineClient {
   }
 
   async seed() {
+    const savedDoc = parseSavedCanvasDoc(window.localStorage.getItem(CANVAS_DOC_STORAGE_KEY));
+    if (savedDoc) {
+      this.canvasDoc = savedDoc;
+      return;
+    }
     const savedPositions = readSavedPositions();
     const elements: Record<string, CanvasElement> = {};
     const layer = scenario.name;
@@ -197,7 +244,14 @@ export class HomepageEngineClient extends MockBridgeEngineClient {
   }
 
   override async runRecipe(recipe: string): Promise<CanvasBatchResult> {
-    if (recipe !== 'impact') return super.runRecipe(recipe);
+    const result = recipe === 'impact'
+      ? await this.runImpactRecipe()
+      : await super.runRecipe(recipe);
+    this.persistCanvasDoc();
+    return result;
+  }
+
+  private async runImpactRecipe(): Promise<CanvasBatchResult> {
     const doc = await this.getCanvas();
     const ops = Object.values(doc.elements)
       .filter((element) => element.layer === 'impact')
@@ -235,6 +289,7 @@ export class HomepageEngineClient extends MockBridgeEngineClient {
   override async patchCanvas(batch: CanvasBatch): Promise<CanvasBatchResult> {
     const result = await super.patchCanvas(batch);
     if (!result.ok) return result;
+    this.persistCanvasDoc();
     try {
       const doc = await this.getCanvas();
       const positions = Object.fromEntries(Object.entries(doc.elements)

@@ -1744,7 +1744,7 @@ export class MockBridgeEngineClient implements EngineClient {
 
   // In-memory only, per client instance (a workspace switch gets a fresh one) — mirrors one
   // .codechroma/canvas.json per workspace without persisting across reload.
-  private canvasDoc: CanvasDoc = { ...EMPTY_CANVAS_DOC, doc_id: "mock" };
+  protected canvasDoc: CanvasDoc = { ...EMPTY_CANVAS_DOC, doc_id: "mock" };
 
   async getCanvas(): Promise<CanvasDoc> {
     return this.canvasDoc;

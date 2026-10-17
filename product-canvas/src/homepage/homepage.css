@@ -1,21 +1,5 @@
 /* Only embed accommodations. All canvas/panel/block styling comes from the product stylesheet. */
 html, body, #root { width: 100%; height: 100%; margin: 0; }
-.homepage-copy-layout {
-  position: fixed;
-  z-index: 5000;
-  right: 16px;
-  bottom: 16px;
-  padding: 10px 14px;
-  border: 1px solid rgba(146, 190, 226, .72);
-  border-radius: 9px;
-  background: #10233a;
-  color: #edf5ff;
-  box-shadow: 0 5px 18px rgba(0, 0, 0, .4);
-  font: 600 13px/1.2 system-ui, sans-serif;
-  cursor: pointer;
-}
-.homepage-copy-layout:hover { background: #1a3859; }
-.homepage-copy-layout:focus-visible { outline: 2px solid #9cc8f0; outline-offset: 2px; }
 .homepage-diagram-switcher {
   position: fixed;
   z-index: 6000;

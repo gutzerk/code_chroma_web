@@ -14,6 +14,8 @@ import { clearSavedCameraView } from '../canvas/canvasCameraStore';
 import { collapsedLayersStore } from '../canvas/doc/collapsedLayersStore';
 import { patchCanvasDoc } from '../canvas/doc/canvasDocStore';
 import { runRecipeAndLayout } from '../canvas/doc/diagramCatalog';
+import { expansionStore } from '../state/expansionState';
+import { inspectorStore } from '../canvas/inspectorStore';
 import { tutorialSimStore } from '../tutorial/tutorialSim';
 import '../styles.css';
 import './homepage.css';
@@ -31,6 +33,18 @@ const DEMO_DIAGRAMS = [
   { key: 'impact', label: 'Impact', layer: 'impact', recipe: 'impact' },
 ] as const;
 type DemoDiagramKey = typeof DEMO_DIAGRAMS[number]['key'];
+const ACTIVE_DIAGRAM_STORAGE_KEY = 'codechroma-homepage-active-diagram-v1';
+
+function readActiveDiagram(): DemoDiagramKey {
+  try {
+    const saved = window.localStorage.getItem(ACTIVE_DIAGRAM_STORAGE_KEY);
+    return DEMO_DIAGRAMS.find((diagram) => diagram.key === saved)?.key ?? 'architecture';
+  } catch {
+    return 'architecture';
+  }
+}
+
+const initialActiveDiagram = readActiveDiagram();
 
 // Fixed homepage Plan layout, keyed by the recipe node ids copied from the canvas.
 const PLAN_BLOCK_POSITIONS: Record<string, { x: number; y: number }> = {
@@ -105,15 +119,24 @@ function DiagramSwitcher({
       if (selected.recipe) {
         const doc = await engine.getCanvas();
         const exists = Object.values(doc.elements).some((element) => element.layer === selected.layer);
-        // Re-run the hard sequence layout so older, wide instances are compacted on first switch.
-        if (!exists || key === 'sequence' || key === 'plan' || key === 'impact') {
+        // Keep a diagram's saved positions when switching views or reopening the other canvas.
+        if (!exists) {
           const result = await runRecipeAndLayout(engine, selected.recipe);
           if (!result.ok) throw new Error(result.error);
+          if (key === 'plan') await applyPlanBlockPositions();
+          if (key === 'impact') await applyImpactBlockPositions();
         }
-        if (key === 'plan') await applyPlanBlockPositions();
-        if (key === 'impact') await applyImpactBlockPositions();
       }
       collapsedLayersStore.expand(selected.layer);
+      if (key !== active) {
+        expansionStore.getCodeVisibleNodeIdsByOrder().forEach(expansionStore.hideCode);
+        inspectorStore.close();
+      }
+      try {
+        window.localStorage.setItem(ACTIVE_DIAGRAM_STORAGE_KEY, key);
+      } catch {
+        // The selected view still changes for this session when browser storage is unavailable.
+      }
       onActiveChange(key);
       setStatus('');
       centerVisibleDiagram();
@@ -135,77 +158,18 @@ function DiagramSwitcher({
   </div>;
 }
 
-function CopyLayoutButton({ active }: { active: DemoDiagramKey }) {
-  const [status, setStatus] = useState('');
-
-  async function copyLayout() {
-    const diagram = DEMO_DIAGRAMS.find((item) => item.key === active)!;
-    const doc = await engine.getCanvas();
-    const blocks = Object.values(doc.elements)
-      .filter((element) => element.layer === diagram.layer && element.render !== 'group')
-      .map((element) => ({
-        name: element.label,
-        x: element.position.x,
-        y: element.position.y,
-      }));
-    if (blocks.length === 0) {
-      setStatus(`В диаграмме ${diagram.label} нет блоков`);
-      return;
-    }
-    const text = JSON.stringify({
-      name: diagram.key === 'architecture' ? scenario.name : diagram.label,
-      blocks,
-    }, null, 2);
-
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const field = document.createElement('textarea');
-      field.value = text;
-      field.style.position = 'fixed';
-      field.style.opacity = '0';
-      document.body.appendChild(field);
-      field.select();
-      const copied = document.execCommand('copy');
-      field.remove();
-      if (!copied) {
-        setStatus('Не удалось скопировать');
-        return;
-      }
-    }
-
-    setStatus(`Скопировано блоков: ${blocks.length}`);
-    window.setTimeout(() => setStatus(''), 2200);
-  }
-
-  return <button
-    className="homepage-copy-layout"
-    type="button"
-    onPointerDown={(event) => event.stopPropagation()}
-    onClick={() => { void copyLayout(); }}
-  >
-    {status || 'Скопировать позиции'}
-  </button>;
-}
-
 function HomepageCanvasControls() {
-  const [active, setActive] = useState<DemoDiagramKey>('architecture');
-  return <>
-    <CopyLayoutButton active={active} />
-    <DiagramSwitcher active={active} onActiveChange={setActive} />
-  </>;
+  const [active, setActive] = useState<DemoDiagramKey>(initialActiveDiagram);
+  return <DiagramSwitcher active={active} onActiveChange={setActive} />;
 }
 // The scene is recreated from a snapshot on refresh, so its camera starts fitted too.
 clearSavedCameraView();
 branchStore.setBranch(await agentClient.getBranch());
 await engine.seed();
-// This demo seeds the architecture synchronously, while the other views are generated on demand.
-// A previous visit may have persisted Sequence/Plan/Impact as the expanded layer; restoring that
-// state on a fresh page leaves an empty canvas and prevents the host page from receiving block
-// positions. Always start from the seeded architecture, then let the switcher change views.
-DEMO_DIAGRAMS.filter((diagram) => diagram.key !== 'architecture')
+// Restore the same selected diagram on the landing-page canvas and on /canvas/.
+DEMO_DIAGRAMS.filter((diagram) => diagram.key !== initialActiveDiagram)
   .forEach((diagram) => collapsedLayersStore.collapse(diagram.layer));
-collapsedLayersStore.expand(DEMO_DIAGRAMS[0].layer);
+collapsedLayersStore.expand(DEMO_DIAGRAMS.find((diagram) => diagram.key === initialActiveDiagram)!.layer);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <AppErrorBoundary>
