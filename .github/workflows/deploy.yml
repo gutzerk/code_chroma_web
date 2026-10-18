@@ -28,12 +28,18 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            product-canvas/package-lock.json
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install embedded canvas dependencies
+        run: npm ci --prefix product-canvas --include=dev
 
       - name: Build Next.js
         run: npm run build
