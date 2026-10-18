@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import Nav from "@/components/Nav";
 import PreAlphaNote from "@/components/PreAlphaNote";
@@ -14,6 +15,7 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 export const metadata: Metadata = {
   title: "CodeChroma — Navigate any codebase like a map, not a maze",
@@ -28,6 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <Script src={`${BASE_PATH}/reset-demo-state.js`} strategy="beforeInteractive" />
         <Nav />
         <PreAlphaNote />
         {children}

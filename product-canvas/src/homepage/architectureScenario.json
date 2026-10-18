@@ -1,0 +1,224 @@
+{
+  "name": "Aurora AI · request to inference",
+  "zones": [
+    "Client & API edge",
+    "Application services",
+    "Data & jobs",
+    "Private processing"
+  ],
+  "nodes": [
+    {
+      "name": "Client / SDK",
+      "kind": "ui",
+      "tint": "blue",
+      "description": "Sends chat requests and uploads documents.",
+      "files": [
+        0
+      ],
+      "x": -439.0053711237927,
+      "y": 429.15788786792166,
+      "zone": 0
+    },
+    {
+      "name": "API Gateway",
+      "kind": "api",
+      "tint": "blue",
+      "description": "Validates access and routes chat and document jobs.",
+      "files": [
+        2
+      ],
+      "x": -22.02433933722407,
+      "y": 422.9165490856152,
+      "zone": 0
+    },
+    {
+      "name": "Chat API · 3 pods",
+      "kind": "service",
+      "tint": "blue",
+      "description": "Loads chat history, retrieves context and streams replies.",
+      "files": [
+        4
+      ],
+      "x": 436.09763583003814,
+      "y": 310.70966487160354,
+      "zone": 1
+    },
+    {
+      "name": "Workflow API · 2 pods",
+      "kind": "service",
+      "tint": "violet",
+      "description": "Authorizes document jobs and queues processing tasks.",
+      "files": [
+        5
+      ],
+      "x": 417.00611687095096,
+      "y": 762.0953548413485,
+      "zone": 1
+    },
+    {
+      "name": "RAG retrieval",
+      "kind": "service",
+      "tint": "cyan",
+      "description": "Searches tenant documents and assembles citations.",
+      "files": [
+        6
+      ],
+      "x": 440.8344260180235,
+      "y": 29.274264876271054,
+      "zone": 1
+    },
+    {
+      "name": "LLM router & policy",
+      "kind": "system",
+      "tint": "amber",
+      "description": "Applies safety rules and routes requests to private models.",
+      "files": [
+        7
+      ],
+      "x": 1033.837642449118,
+      "y": 17.64445761144528,
+      "zone": 1
+    },
+    {
+      "name": "PostgreSQL",
+      "kind": "database",
+      "tint": "green",
+      "description": "Stores tenants, chat history and job status.",
+      "files": [
+        8
+      ],
+      "x": 903.3704196578581,
+      "y": 454.94965200949594,
+      "zone": 2
+    },
+    {
+      "name": "Vector database",
+      "kind": "database",
+      "tint": "green",
+      "description": "Stores embeddings and searchable document chunks.",
+      "files": [
+        10
+      ],
+      "x": 897.3512197489111,
+      "y": 241.06736695881423,
+      "zone": 2
+    },
+    {
+      "name": "NATS JetStream",
+      "kind": "queue",
+      "tint": "pink",
+      "description": "Queues document-processing jobs reliably.",
+      "files": [
+        11
+      ],
+      "x": 926.9065084276868,
+      "y": 769.6154973470713,
+      "zone": 2
+    },
+    {
+      "name": "Ingestion workers · 4 pods",
+      "kind": "worker",
+      "tint": "pink",
+      "description": "Parses, chunks and embeds uploaded documents.",
+      "files": [
+        12
+      ],
+      "x": 1547.332452973807,
+      "y": 466.12034706136916,
+      "zone": 3
+    },
+    {
+      "name": "Object storage · S3",
+      "kind": "database",
+      "tint": "green",
+      "description": "Stores encrypted source documents.",
+      "files": [
+        13
+      ],
+      "x": 1550.01791038455,
+      "y": 808.0514203277063,
+      "zone": 3
+    },
+    {
+      "name": "Private inference · vLLM",
+      "kind": "worker",
+      "tint": "violet",
+      "description": "Runs private chat and embedding models.",
+      "files": [
+        14
+      ],
+      "x": 1573.2976958324246,
+      "y": 17.815201649881587,
+      "zone": 3
+    }
+  ],
+  "connections": [
+    {
+      "from": 0,
+      "to": 1,
+      "label": "HTTPS / SSE"
+    },
+    {
+      "from": 1,
+      "to": 2,
+      "label": "chat"
+    },
+    {
+      "from": 1,
+      "to": 3,
+      "label": "jobs"
+    },
+    {
+      "from": 2,
+      "to": 6,
+      "label": "history",
+      "secondary": true
+    },
+    {
+      "from": 2,
+      "to": 4,
+      "label": "retrieve"
+    },
+    {
+      "from": 4,
+      "to": 5,
+      "label": "context"
+    },
+    {
+      "from": 3,
+      "to": 8,
+      "label": "enqueue"
+    },
+    {
+      "from": 4,
+      "to": 7,
+      "label": "search"
+    },
+    {
+      "from": 5,
+      "to": 11,
+      "label": "inference"
+    },
+    {
+      "from": 8,
+      "to": 9,
+      "label": "deliver"
+    },
+    {
+      "from": 9,
+      "to": 10,
+      "label": "read"
+    },
+    {
+      "from": 9,
+      "to": 7,
+      "label": "upsert"
+    },
+    {
+      "from": 3,
+      "to": 6,
+      "label": "status",
+      "secondary": true
+    }
+  ]
+}
