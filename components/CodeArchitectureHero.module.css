@@ -198,10 +198,10 @@
 .macTrafficLights i:nth-child(1) { background: #ff5f57; }
 .macTrafficLights i:nth-child(2) { background: #febc2e; }
 .macTrafficLights i:nth-child(3) { background: #28c840; }
-.appWindowTitle { display: flex; align-items: baseline; gap: 9px; white-space: nowrap; font: 11px var(--font-geist-mono), monospace; }
+.appWindowTitle { grid-column: 3; justify-self: end; display: flex; align-items: baseline; gap: 9px; white-space: nowrap; font: 11px var(--font-geist-mono), monospace; }
 .appWindowTitle strong { color: #edf4fa; font-weight: 600; }
 .appWindowTitle span { color: #91a5b7; }
-.appWindowAction { justify-self: end; color: #91c9b5; font: 9px var(--font-geist-mono), monospace; letter-spacing: .02em; text-decoration: none; transition: color .15s ease; }
+.appWindowAction { position: absolute; left: 50%; transform: translateX(-50%); color: #91c9b5; font: 9px var(--font-geist-mono), monospace; letter-spacing: .02em; text-decoration: none; transition: color .15s ease; }
 .appWindowAction:hover { color: #d2f4e4; }
 .appWindowAction span { margin-left: 3px; }
 .productFrame { position: absolute; top: 45px; left: 0; z-index: 5; width: 100%; height: calc(100% - 45px); border: 0; opacity: 0; background: #0f1115; pointer-events: none; }
@@ -219,6 +219,7 @@
   .appWindow { width: calc(100% - 24px); height: min(78svh, 700px); min-height: 540px; border-radius: 10px; }
   .appTitlebar { height: 42px; padding: 0 10px; }
   .appWindowTitle { font-size: 9px; gap: 5px; }
+  .appWindowTitle span { display: none; }
   .appWindowAction { font-size: 8px; }
   .productFrame { top: 43px; height: calc(100% - 43px); }
 }

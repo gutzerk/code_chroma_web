@@ -39,6 +39,8 @@ export interface CanvasViewportHandle {
 
 interface CanvasViewportProps {
   children: ReactNode;
+  /** Website demo: one camera owner fits the active diagram in logical coordinates. */
+  diagramLayer?: string;
 }
 
 interface ViewState {
@@ -232,7 +234,7 @@ function clickTargetBelowArrow(clientX: number, clientY: number): HTMLElement | 
  * empty areas inside expanded (and inline-code) blocks pan while a plain click still toggles the
  * block under it. The click a completed drag would synthesize is swallowed so it can't also toggle. */
 export const CanvasViewport = forwardRef<CanvasViewportHandle, CanvasViewportProps>(
-  function CanvasViewport({ children }, ref) {
+  function CanvasViewport({ children, diagramLayer }, ref) {
     // Restore the persisted camera at mount (lazy initializer so localStorage is read once). Reset
     // to the fresh origin when nothing is saved -- readSavedCameraView returns null for an absent
     // or at-origin view.
@@ -241,6 +243,7 @@ export const CanvasViewport = forwardRef<CanvasViewportHandle, CanvasViewportPro
     const fixedScaleRef = useRef<number | null>(null);
     // Fit once on load; all later focus actions preserve that scale and only pan.
     function fitAtFixedScale(v: ViewState, viewport: DOMRect, target: DOMRect): ViewState {
+      if (diagramLayer) return v;
       const fitted = computeFitView(v, viewport, target);
       if (fixedScaleRef.current === null) fixedScaleRef.current = fitted.scale;
       const scale = fixedScaleRef.current;
@@ -250,6 +253,57 @@ export const CanvasViewport = forwardRef<CanvasViewportHandle, CanvasViewportPro
     }
     const viewportRef = useRef<HTMLDivElement | null>(null);
     const contentRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+      if (!diagramLayer) return;
+      const viewport = viewportRef.current;
+      const content = contentRef.current;
+      if (!viewport || !content) return;
+      let frame: HTMLElement | null = null;
+      let raf = 0;
+      let disposed = false;
+      const fit = () => {
+        raf = 0;
+        if (disposed || !frame?.isConnected) return;
+        const width = viewport.clientWidth;
+        const height = viewport.clientHeight;
+        const w = frame.offsetWidth;
+        const h = frame.offsetHeight;
+        if (!width || !height || !w || !h) return;
+        // offset geometry is independent of the camera transform and any running transition.
+        // Reserve room for the diagram buttons, then fill the available canvas.
+        const top = 54;
+        const scale = Math.min((width - 40) / w, (height - top - 24) / h, MAX_SCALE);
+        if (scale <= 0) return;
+        setIsFocusing(false);
+        setView({ scale,
+          x: width / 2 - (frame.offsetLeft + w / 2) * scale,
+          y: top + (height - top) / 2 - (frame.offsetTop + h / 2) * scale });
+      };
+      const schedule = () => {
+        if (!raf) raf = requestAnimationFrame(fit);
+      };
+      const resize = new ResizeObserver(schedule);
+      resize.observe(viewport);
+      const bindFrame = () => {
+        const next = content.querySelector<HTMLElement>('.canvas-diagram-frame');
+        if (next === frame) return;
+        if (frame) resize.unobserve(frame);
+        frame = next;
+        if (frame) resize.observe(frame);
+        schedule();
+      };
+      // A saved diagram can mount after the asynchronous document load. Observe its arrival,
+      // rather than stopping a retry loop while only a hierarchy block is available.
+      const mount = new MutationObserver(bindFrame);
+      mount.observe(content, { childList: true, subtree: true });
+      bindFrame();
+      return () => {
+        disposed = true;
+        cancelAnimationFrame(raf);
+        resize.disconnect();
+        mount.disconnect();
+      };
+    }, [diagramLayer]);
     const panRef = useRef<PanState | null>(null);
     const marqueeRef = useRef<MarqueeState | null>(null);
     const [marqueeRect, setMarqueeRect] = useState<MarqueeRect | null>(null);
@@ -490,14 +544,17 @@ export const CanvasViewport = forwardRef<CanvasViewportHandle, CanvasViewportPro
         playFocusAnimation();
       },
       fitToSelector(selector: string, zoomFactor = 1): boolean {
+        if (diagramLayer) return false;
         const viewportEl = viewportRef.current;
         if (!viewportEl) return false;
+        const viewportRect = viewportEl.getBoundingClientRect();
+        const elements = viewportEl.querySelectorAll<HTMLElement>(selector);
+        const { rect: unionRect } = unionRects(elements);
+        if (!unionRect || viewportRect.width <= 0 || viewportRect.height <= 0) return false;
+
         lastFocusedNodeIdRef.current = null;
         previousViewRef.current = null;
         contentRef.current?.classList.remove("canvas-content--animated");
-        const viewportRect = viewportEl.getBoundingClientRect();
-        const { rect: unionRect } = unionRects(viewportEl.querySelectorAll<HTMLElement>(selector));
-        if (!unionRect) return false;
         setView((v) => {
           const fitted = fitAtFixedScale(v, viewportRect, unionRect);
           const factor = Number.isFinite(zoomFactor) ? clamp(zoomFactor, 1, 1.8) : 1;
@@ -581,7 +638,7 @@ export const CanvasViewport = forwardRef<CanvasViewportHandle, CanvasViewportPro
     const settledRef = useRef(false);
     useEffect(() => {
       const el = viewportRef.current;
-      if (!el || typeof ResizeObserver === "undefined") return undefined;
+      if (diagramLayer || !el || typeof ResizeObserver === "undefined") return undefined;
       let last: { width: number; height: number } | null = null;
       let settleTimer: ReturnType<typeof setTimeout> | null = null;
       const arm = () => {
@@ -619,7 +676,7 @@ export const CanvasViewport = forwardRef<CanvasViewportHandle, CanvasViewportPro
         if (settleTimer) clearTimeout(settleTimer);
         observer.disconnect();
       };
-    }, []);
+    }, [diagramLayer]);
 
     // Persist the camera as the user pans/zooms, so a reload restores it (readSavedCameraView at
     // mount). The reset origin isn't a meaningful place to save — restoring "no view" is the same as

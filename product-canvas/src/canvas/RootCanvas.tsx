@@ -21,7 +21,7 @@ import { EpicBriefPanel } from "./doc/EpicBriefPanel";
 import { DescriptionPopup } from "./doc/DescriptionPopup";
 import { DrawDiagramButton } from "../homepage/DemoDrawMenu";
 import { GamesMenu } from "../games/GamesMenu";
-import { useHasCanvasLayer } from "./doc/canvasDocStore";
+import { canvasDocStore, useHasCanvasLayer } from "./doc/canvasDocStore";
 import { CodePopupContext } from "./CodePopupContext";
 import { CodePopup } from "./CodePopup";
 import { InspectorPanel } from "./InspectorPanel";
@@ -99,7 +99,7 @@ const UNDO_KINDS: readonly LayoutKind[] = ["hierarchy", "canvas"];
 
 /** Mounts the root Block for the default repository (FR-002) — there is exactly one page, no
  * per-node URL (FR-018). */
-export function RootCanvas() {
+export function RootCanvas({ diagramLayer }: { diagramLayer?: string } = {}) {
   const engineClient = useEngineClient();
   const [rootNode, setRootNode] = useState<HierarchyNodeRef | null>(null);
   const [codePopupNode, setCodePopupNode] = useState<HierarchyNodeRef | null>(null);
@@ -212,6 +212,7 @@ export function RootCanvas() {
   // (autoExpandDoneRef), suppressing the per-expand count-change auto-fit during the batch so the
   // camera doesn't chase each expand, then frames the whole revealed set once at the end.
   useEffect(() => {
+    if (diagramLayer) return;
     if (!rootNode || autoExpandDoneRef.current) return;
     autoExpandDoneRef.current = true;
     // Read the restored-camera flag deterministically from the store rather than through
@@ -239,7 +240,12 @@ export function RootCanvas() {
     let cancelled = false;
     const recenter = () => {
       if (cancelled) return;
-      const centered = viewportRef.current?.fitToSelector('[data-canvas-element]', initialZoomFactor) ?? false;
+      // The canvas document loads asynchronously after RootCanvas mounts. Fitting as soon as the
+      // first data-canvas-element appears locks fixedScaleRef to that one block, so the completed
+      // diagram opens massively zoomed in. Wait until the whole document is in the store; its view
+      // renders all active-layer boxes together before this fit loop can finish.
+      const centered = canvasDocStore.isLoaded()
+        && (viewportRef.current?.fitToSelector('[data-canvas-element]', initialZoomFactor) ?? false);
       frame += 1;
       if (!centered && frame < CAMERA_RECENTER_MAX_FRAMES) requestAnimationFrame(recenter);
     };
@@ -274,7 +280,7 @@ export function RootCanvas() {
         if (restoredView) camera.release();
         else frameFitTo([id]);
       });
-  }, [rootNode, engineClient, autoExpandEnabled, initialZoomFactor, frameFitTo, camera]);
+  }, [rootNode, engineClient, autoExpandEnabled, initialZoomFactor, frameFitTo, camera, diagramLayer]);
 
   // View-agnostic on purpose: the C1 view renders no root block, so targeting rootNode here was a
   // silent no-op there. fitToAllNodes unions whatever is actually mounted in either view.
@@ -472,7 +478,7 @@ export function RootCanvas() {
             {/* Own positioning context so the absolutely-positioned overlays below keep anchoring to
                 the visible canvas, not to the canvas plus the breadcrumb strip above it. */}
             <div className="canvas-stage">
-              <CanvasViewport ref={viewportRef}>
+              <CanvasViewport ref={viewportRef} diagramLayer={diagramLayer}>
                 <CanvasFocusContext.Provider
                   value={(nodeId) => viewportRef.current?.focusOnNode(nodeId)}
                 >

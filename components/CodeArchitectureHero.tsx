@@ -26,6 +26,7 @@ const CONNECTIONS = SCENARIO.connections.map(({ from, to, secondary }) => ({ fro
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 const smooth = (value: number) => { const t = clamp(value); return t * t * (3 - 2 * t); };
 const DEFAULT_CANVAS_COLOR = "#0b1a2a";
+const PRESERVE_DEMO_STATE_KEY = "codechroma-preserve-demo-state-once";
 
 function hslToHex(hue: number, saturation: number, lightness: number) {
   const s = saturation / 100;
@@ -103,6 +104,24 @@ export default function CodeArchitectureHero() {
   const canvasHue = hexToHue(canvasColor);
   const updateLayout = useCallback(() => layoutRef.current(), []);
   const ignoreInteraction = useCallback(() => {}, []);
+  const markProductReady = useCallback(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    iframeReadyRef.current = true;
+    setProductReady(true);
+    frame.contentWindow?.postMessage({ type: "codechroma-request-layout" }, window.location.origin);
+    layoutRef.current();
+  }, []);
+
+  useEffect(() => {
+    // The one-shot marker is only for the two-way full-canvas navigation. Consume any marker
+    // left by a client-side transition so a later manual refresh still resets the demo.
+    try {
+      window.sessionStorage.removeItem(PRESERVE_DEMO_STATE_KEY);
+    } catch {
+      // The canvas still loads with its regular defaults when session storage is unavailable.
+    }
+  }, []);
 
   useEffect(() => {
     const savedColor = window.localStorage.getItem("codechroma-canvas-color");
@@ -142,6 +161,23 @@ export default function CodeArchitectureHero() {
     frameRef.current?.contentWindow?.postMessage({ type: "codechroma-request-layout" }, window.location.origin);
     return () => window.removeEventListener("message", onLayout);
   }, []);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+    const checkAlreadyLoaded = () => {
+      try {
+        const expectedPath = new URL(frame.src, window.location.href).pathname;
+        if (frame.contentDocument?.readyState === "complete"
+          && frame.contentDocument.location.pathname === expectedPath) markProductReady();
+      } catch {
+        // The regular iframe load handler remains the fallback if its document is not readable.
+      }
+    };
+    checkAlreadyLoaded();
+    frame.addEventListener("load", checkAlreadyLoaded);
+    return () => frame.removeEventListener("load", checkAlreadyLoaded);
+  }, [markProductReady]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -270,9 +306,9 @@ export default function CodeArchitectureHero() {
           <div className={styles.grid} aria-hidden="true" />
 
           <div className={styles.headline}>
-            <p className={styles.eyebrow}><span>CODECHROMA</span> A living map of your codebase</p>
-            <h1>Your codebase.<br /><em>In clear view.</em></h1>
-            <p className={styles.subhead}>Turn a real repository into an architecture map you can explore, understand, and keep in sync.</p>
+            <p className={styles.eyebrow}><span>CODECHROMA</span></p>
+            <h1>More than an<br /><em>AI skill</em></h1>
+            <p className={styles.subhead}>A new approach to software development. From machine code and assembly to high-level languages. Now AI enables the next step: working at the level of architecture and decision-making. Diagrams help you understand existing projects and design new ones.</p>
             <HeroInstallCommand />
             <div className={styles.scrollCue}><span className={styles.mouse}><i /></span><span>SCROLL TO EXPLORE THE CODE</span><span className={styles.cueLine} /></div>
           </div>
@@ -295,9 +331,20 @@ export default function CodeArchitectureHero() {
           <div className={styles.appTitlebar} aria-label="CodeChroma macOS app window">
             <div className={styles.macTrafficLights} aria-hidden="true"><i /><i /><i /></div>
             <div className={styles.appWindowTitle}><strong>CodeChroma</strong><span>Architecture Canvas</span></div>
-            <Link href="/canvas/" className={styles.appWindowAction}>Open full canvas <span aria-hidden="true">↗</span></Link>
+            <Link
+              href="/canvas/"
+              className={styles.appWindowAction}
+              onClick={() => {
+                try {
+                  window.sessionStorage.setItem(PRESERVE_DEMO_STATE_KEY, "true");
+                  window.setTimeout(() => window.sessionStorage.removeItem(PRESERVE_DEMO_STATE_KEY), 2500);
+                } catch {
+                  // Full canvas navigation still works if session storage is unavailable.
+                }
+              }}
+            >Open full canvas <span aria-hidden="true">↗</span></Link>
           </div>
-          <iframe ref={frameRef} className={styles.productFrame} src="/product-canvas/index.html?autoexpand=off&initialZoom=1.4" onLoad={() => { iframeReadyRef.current = true; setProductReady(true); frameRef.current?.contentWindow?.postMessage({ type: "codechroma-request-layout" }, window.location.origin); layoutRef.current(); }} title="CodeChroma canvas — interactive demo" allow="clipboard-write; fullscreen" allowFullScreen />
+          <iframe ref={frameRef} className={styles.productFrame} src="/product-canvas/index.html?autoexpand=off&initialZoom=1.3" onLoad={markProductReady} title="CodeChroma canvas — interactive demo" allow="clipboard-write; fullscreen" allowFullScreen />
           {!productReady && <p className={styles.productLoading} role="status">Loading CodeChroma canvas…</p>}
         </div>
       </section>

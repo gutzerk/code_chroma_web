@@ -5,6 +5,152 @@ import type { SidecarKind, SidecarPayload } from '../engine-client/EngineClient'
 import samples from './codeSamples.json';
 import scenario from './architectureScenario.json';
 
+const ARCHITECTURE_SOURCE_OVERRIDES: Record<number, { name: string; language: string; source: string }> = {
+  0: {
+    name: 'client/session.ts', language: 'typescript', source: `export type ChatRequest = { conversationId: string; message: string; token: string };
+
+export async function sendMessage(input: ChatRequest): Promise<Response> {
+  return fetch('/api/chat/stream', {
+    method: 'POST',
+    headers: { Authorization: \`Bearer \${input.token}\`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ conversationId: input.conversationId, message: input.message }),
+  });
+}`,
+  },
+  2: {
+    name: 'gateway/routes.go', language: 'go', source: `func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	token := bearerToken(r.Header.Get("Authorization"))
+	claims, err := g.auth.Verify(r.Context(), token)
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	g.router.ServeHTTP(w, r.WithContext(withClaims(r.Context(), claims)))
+}`,
+  },
+  4: {
+    name: 'services/chat.tsx', language: 'tsx', source: `export async function streamChat(input: ChatInput, signal: AbortSignal) {
+  const history = await conversations.load(input.conversationId);
+  const context = await retrieval.search(input.tenantId, input.message);
+
+  return models.stream({
+    messages: [...history, { role: 'user', content: input.message }],
+    context: context.map((item) => item.text),
+    signal,
+  });
+}`,
+  },
+  5: {
+    name: 'services/workflows.py', language: 'python', source: `async def start_ingestion(tenant_id: str, object_key: str) -> str:
+    job_id = uuid4().hex
+    await jobs.insert(job_id, tenant_id=tenant_id, status="queued")
+    await events.publish(
+        "documents.ingest",
+        {"job_id": job_id, "tenant_id": tenant_id, "object_key": object_key},
+    )
+    return job_id`,
+  },
+  6: {
+    name: 'services/retrieval.rs', language: 'rust', source: `pub async fn search(tenant: TenantId, query: &str) -> Result<Vec<Chunk>> {
+    let embedding = embedder.encode(query).await?;
+    let candidates = vector_index
+        .search(embedding, Filter::tenant(tenant), 20)
+        .await?;
+    reranker.rank(query, candidates).await
+}`,
+  },
+  7: {
+    name: 'inference/router.kt', language: 'kotlin', source: `suspend fun route(request: ModelRequest): ModelResponse {
+    policy.requireAllowed(request.tenantId, request.model)
+    val provider = when {
+        request.containsSensitiveData -> privateVllm
+        else -> providerPool.forModel(request.model)
+    }
+    return provider.generate(request)
+}`,
+  },
+  8: {
+    name: 'storage/conversations.sql', language: 'sql', source: `CREATE TABLE conversations (
+    id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id     uuid NOT NULL REFERENCES tenants(id),
+    title         text NOT NULL DEFAULT '',
+    created_at    timestamptz NOT NULL DEFAULT now(),
+    updated_at    timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX conversations_tenant_updated
+    ON conversations (tenant_id, updated_at DESC);`,
+  },
+  10: {
+    name: 'storage/vector_index.java', language: 'java', source: `public List<SearchResult> search(UUID tenantId, float[] embedding, int limit) {
+    return vectorClient.query(collection)
+        .where("tenant_id", tenantId.toString())
+        .nearest("embedding", embedding)
+        .limit(limit)
+        .include("document_id", "text", "score")
+        .execute()
+        .stream()
+        .map(SearchResult::from)
+        .toList();
+}`,
+  },
+  11: {
+    name: 'jobs/events.go', language: 'go', source: `func (p *Publisher) PublishIngestion(ctx context.Context, job Job) error {
+	data, err := json.Marshal(job)
+	if err != nil {
+		return fmt.Errorf("encode ingestion job: %w", err)
+	}
+
+	_, err = p.js.Publish(ctx, "documents.ingest", data,
+		nats.MsgId(job.ID), nats.ExpectStream("DOCUMENTS"))
+	return err
+}`,
+  },
+  12: {
+    name: 'workers/ingestion.py', language: 'python', source: `async def process_document(job: IngestionJob) -> None:
+    raw = await object_store.download(job.object_key)
+    pages = await parser.extract_pages(raw, content_type=job.content_type)
+    chunks = chunker.split(pages, max_tokens=800, overlap=100)
+
+    vectors = await embedder.encode_many([chunk.text for chunk in chunks])
+    await vector_store.upsert(job.tenant_id, job.document_id, chunks, vectors)
+    await events.publish("documents.indexed", {"job_id": job.id})`,
+  },
+  13: {
+    name: 'storage/documents.ts', language: 'typescript', source: `export async function storeUpload(file: File, tenantId: string) {
+  const key = \`\${tenantId}/\${crypto.randomUUID()}/\${safeName(file.name)}\`;
+  await s3.send(new PutObjectCommand({
+    Bucket: config.documentsBucket,
+    Key: key,
+    Body: file.stream(),
+    ServerSideEncryption: 'aws:kms',
+    ContentType: file.type,
+  }));
+  return { key, size: file.size, contentType: file.type };
+}`,
+  },
+  14: {
+    name: 'inference/private_models.cs', language: 'csharp', source: `public async Task<ModelResponse> CompleteAsync(ModelRequest request, CancellationToken ct) {
+    using var response = await httpClient.PostAsJsonAsync(
+        $"{settings.VllmUrl}/v1/chat/completions", request, ct);
+    response.EnsureSuccessStatusCode();
+
+    return await response.Content.ReadFromJsonAsync<ModelResponse>(
+        cancellationToken: ct)
+        ?? throw new InvalidOperationException("vLLM returned an empty response");
+}`,
+  },
+};
+
+function architectureSample(index: number) {
+  const sample = samples[index];
+  const override = ARCHITECTURE_SOURCE_OVERRIDES[index];
+  return override
+    ? { ...sample, name: override.name, language: override.language, lines: override.source.split('\n') }
+    : sample;
+}
+
 export const groups = scenario.nodes;
 const connections = scenario.connections;
 const LAYOUT_STORAGE_KEY = 'codechroma-homepage-layout-v1';
@@ -139,7 +285,10 @@ FIXTURE_NODES.root = ref('root', 'Aurora AI', null, groups.map((_, i) => `homepa
 groups.forEach((group, i) => {
   const id = `homepage-group-${i}`;
   FIXTURE_NODES[id] = ref(id, group.name, 'root', group.files.map(f => `homepage-file-${f}`));
-  group.files.forEach(f => { FIXTURE_NODES[`homepage-file-${f}`] = ref(`homepage-file-${f}`, samples[f].name, id, [], samples[f]); });
+  group.files.forEach(f => {
+    const sample = architectureSample(f);
+    FIXTURE_NODES[`homepage-file-${f}`] = ref(`homepage-file-${f}`, sample.name, id, [], sample);
+  });
 });
 HOMEPAGE_IMPACT_BLOCKS.forEach((block) => {
   FIXTURE_NODES[block.node_id] = homepageFileNode(block.node_id, block.sample);
@@ -226,7 +375,7 @@ export class HomepageEngineClient extends MockBridgeEngineClient {
         meta: {
           kind: group.kind,
           open_file_id: `homepage-file-${group.files[0]}`,
-          open_file_name: samples[group.files[0]].name,
+          open_file_name: architectureSample(group.files[0]).name,
         }, style: { 'border-color': colors[group.tint].border, background: colors[group.tint].fill }, created_by: 'user' };
     });
     const doc: CanvasDoc = { schema_version: 1, doc_id: 'homepage', updated_at: '', elements,
@@ -327,7 +476,12 @@ export class HomepageEngineClient extends MockBridgeEngineClient {
   }
 
   async getSourceFragment(path: string) {
-    const file = samples.find(file => file.name === path || path.endsWith(file.name));
-    return { path, content: file?.lines.join('\n') ?? '', language: file?.name.endsWith('.py') ? 'python' : 'tsx' };
+    const index = samples.findIndex((sample, sampleIndex) => {
+      const architectureFile = architectureSample(sampleIndex);
+      return sample.name === path || path.endsWith(sample.name)
+        || architectureFile.name === path || path.endsWith(architectureFile.name);
+    });
+    const file = index >= 0 ? architectureSample(index) : undefined;
+    return { path, content: file?.lines.join('\n') ?? '', language: file?.language.toLowerCase() ?? 'plain' };
   }
 }

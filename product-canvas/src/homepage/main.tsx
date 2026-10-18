@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import { AgentClientProvider } from '../agents/AgentClientContext';
 import { MockAgentClient } from '../agents/mockAgentClient';
@@ -16,7 +16,6 @@ import { patchCanvasDoc } from '../canvas/doc/canvasDocStore';
 import { runRecipeAndLayout } from '../canvas/doc/diagramCatalog';
 import { expansionStore } from '../state/expansionState';
 import { inspectorStore } from '../canvas/inspectorStore';
-import { tutorialSimStore } from '../tutorial/tutorialSim';
 import '../styles.css';
 import './homepage.css';
 
@@ -98,23 +97,11 @@ function DiagramSwitcher({
   onActiveChange: (key: DemoDiagramKey) => void;
 }) {
   const [status, setStatus] = useState('');
-
-  function centerVisibleDiagram() {
-    let attempts = 0;
-    const center = () => {
-      if (tutorialSimStore.centerCanvasSelector('.canvas-diagram-frame') || attempts++ >= 45) return;
-      requestAnimationFrame(center);
-    };
-    requestAnimationFrame(() => requestAnimationFrame(center));
-  }
+  const switchRequestRef = useRef(0);
 
   async function showDiagram(key: DemoDiagramKey) {
+    const requestId = ++switchRequestRef.current;
     const selected = DEMO_DIAGRAMS.find((diagram) => diagram.key === key)!;
-    DEMO_DIAGRAMS.filter((diagram) => diagram.key !== key)
-      .forEach((diagram) => collapsedLayersStore.collapse(diagram.layer));
-    // Hide the old generic Epics demo layer when switching to the new authorization Plan.
-    collapsedLayersStore.collapse('epics');
-    collapsedLayersStore.collapse(selected.layer);
     try {
       if (selected.recipe) {
         const doc = await engine.getCanvas();
@@ -127,7 +114,17 @@ function DiagramSwitcher({
           if (key === 'impact') await applyImpactBlockPositions();
         }
       }
+
+      // A previous asynchronous recipe can finish after a newer click. Keep the current view until
+      // the latest requested diagram is fully prepared, then switch visibility in one synchronous
+      // turn. Expand the destination first so even separate store notifications never expose a
+      // blank canvas between views.
+      if (requestId !== switchRequestRef.current) return;
       collapsedLayersStore.expand(selected.layer);
+      DEMO_DIAGRAMS.filter((diagram) => diagram.key !== key)
+        .forEach((diagram) => collapsedLayersStore.collapse(diagram.layer));
+      // Hide the old generic Epics demo layer when switching to the new authorization Plan.
+      collapsedLayersStore.collapse('epics');
       if (key !== active) {
         expansionStore.getCodeVisibleNodeIdsByOrder().forEach(expansionStore.hideCode);
         inspectorStore.close();
@@ -139,9 +136,10 @@ function DiagramSwitcher({
       }
       onActiveChange(key);
       setStatus('');
-      centerVisibleDiagram();
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : `Не удалось построить ${selected.label}`);
+      if (requestId === switchRequestRef.current) {
+        setStatus(error instanceof Error ? error.message : `Не удалось построить ${selected.label}`);
+      }
     }
   }
 
@@ -160,12 +158,25 @@ function DiagramSwitcher({
 
 function HomepageCanvasControls() {
   const [active, setActive] = useState<DemoDiagramKey>(initialActiveDiagram);
-  return <DiagramSwitcher active={active} onActiveChange={setActive} />;
+  const layer = DEMO_DIAGRAMS.find((diagram) => diagram.key === active)!.layer;
+  return <><RootCanvas diagramLayer={layer} /><DiagramSwitcher active={active} onActiveChange={setActive} /></>;
 }
 // The scene is recreated from a snapshot on refresh, so its camera starts fitted too.
 clearSavedCameraView();
 branchStore.setBranch(await agentClient.getBranch());
 await engine.seed();
+// The selection and the saved document are separate keys. Prepare a missing selected layer
+// before mounting, including when a navigation restores the selection without its recipe data.
+const initialDiagram = DEMO_DIAGRAMS.find((diagram) => diagram.key === initialActiveDiagram)!;
+if ('recipe' in initialDiagram) {
+  const doc = await engine.getCanvas();
+  if (!Object.values(doc.elements).some((element) => element.layer === initialDiagram.layer)) {
+    const result = await runRecipeAndLayout(engine, initialDiagram.recipe);
+    if (!result.ok) throw new Error(result.error);
+    if (initialActiveDiagram === 'plan') await applyPlanBlockPositions();
+    if (initialActiveDiagram === 'impact') await applyImpactBlockPositions();
+  }
+}
 // Restore the same selected diagram on the landing-page canvas and on /canvas/.
 DEMO_DIAGRAMS.filter((diagram) => diagram.key !== initialActiveDiagram)
   .forEach((diagram) => collapsedLayersStore.collapse(diagram.layer));
@@ -175,7 +186,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <AppErrorBoundary>
     <AgentClientProvider client={agentClient}>
       <EngineClientProvider repoId="homepage" client={engine}>
-        <TerminalClientProvider client={terminal}><RootCanvas /><HomepageCanvasControls /></TerminalClientProvider>
+        <TerminalClientProvider client={terminal}><HomepageCanvasControls /></TerminalClientProvider>
       </EngineClientProvider>
     </AgentClientProvider>
   </AppErrorBoundary>,
