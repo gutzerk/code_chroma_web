@@ -30,22 +30,27 @@ export default function HeroInstallCommand() {
 
   return (
     <div className={styles.installCommandWrap} id="install">
-      <div className={styles.installPlatformTabs} role="tablist" aria-label="Choose your operating system">
-        {PLATFORMS.map((item) => (
-          <button
-            key={item.id}
-            className={styles.installPlatformTab}
-            type="button"
-            role="tab"
-            aria-selected={platform === item.id}
-            onClick={() => {
-              setPlatform(item.id);
-              setCopied(false);
-            }}
-          >
-            {item.name}
-          </button>
-        ))}
+      <div className={styles.installControlsRow}>
+        <div className={styles.installPlatformTabs} role="tablist" aria-label="Choose your operating system">
+          {PLATFORMS.map((item) => (
+            <button
+              key={item.id}
+              className={styles.installPlatformTab}
+              type="button"
+              role="tab"
+              aria-selected={platform === item.id}
+              onClick={() => {
+                setPlatform(item.id);
+                setCopied(false);
+              }}
+            >
+              {item.name}
+            </button>
+          ))}
+        </div>
+        <a className={styles.releaseNotesLink} href="https://github.com/gutzerk/code_chroma/releases" target="_blank" rel="noreferrer">
+          Release notes <span aria-hidden="true">↗</span>
+        </a>
       </div>
       <div className={styles.installCommand} role="tabpanel" aria-label={`${selected.name} install command`}>
         <code className={styles.installCommandCode}>{selected.command}</code>

@@ -91,14 +91,18 @@
 @keyframes scrollDot { 0%, 100% { opacity: .35; transform: translateY(0); } 55% { opacity: 1; transform: translateY(5px); } }
 
 .installCommandWrap { width: min(100%, 840px); margin: 22px auto 0; text-align: left; }
-.installPlatformTabs { display: flex; gap: 5px; margin-bottom: 7px; }
-.installPlatformTab { border: 1px solid transparent; border-radius: 4px; background: transparent; padding: 6px 10px; color: #8a99a7; font: 9px var(--font-geist-mono), monospace; transition: border-color .18s ease, background .18s ease, color .18s ease; }
-.installPlatformTab:hover { color: #d4e1e4; }
-.installPlatformTab[aria-selected="true"] { border-color: rgba(145, 171, 188, .3); background: rgba(13, 19, 25, .92); color: #dce7e9; }
+.installControlsRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.installPlatformTabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.installPlatformTab { border: 1px solid rgba(151, 177, 195, .42); border-radius: 5px; background: rgba(30, 42, 52, .9); padding: 7px 11px; color: #d2dee5; font: 10px var(--font-geist-mono), monospace; transition: border-color .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease; }
+.installPlatformTab:hover { border-color: #70d9b3; background: rgba(34, 72, 65, .9); color: #f0fff8; }
+.installPlatformTab[aria-selected="true"] { border-color: #73ddb7; background: #285a4b; box-shadow: 0 0 0 1px rgba(115, 221, 183, .24), 0 0 16px rgba(84, 211, 165, .14); color: #f4fff9; }
+.releaseNotesLink { display: inline-flex; flex: none; align-items: center; gap: 6px; border: 1px solid rgba(115, 221, 183, .5); border-radius: 5px; background: rgba(34, 72, 65, .56); padding: 7px 10px; color: #aaf1d1; font: 10px var(--font-geist-mono), monospace; text-decoration: none; transition: border-color .18s ease, background .18s ease, color .18s ease; }
+.releaseNotesLink:hover { border-color: #8af0c8; background: rgba(42, 103, 81, .78); color: #fff; }
+.releaseNotesLink:focus-visible, .installPlatformTab:focus-visible, .installCommandButton:focus-visible { outline: 2px solid #9af3d1; outline-offset: 2px; }
 .installCommand { display: flex; min-height: 48px; align-items: center; gap: 12px; padding: 6px 7px 6px 13px; border: 1px solid rgba(145, 171, 188, .3); border-radius: 6px; background: rgba(7, 11, 16, .88); text-align: left; }
 .installCommandCode { min-width: 0; flex: 1; overflow-x: auto; color: #dce7e9; font: 11px var(--font-geist-mono), monospace; white-space: nowrap; }
-.installCommandButton { flex: none; border: 1px solid rgba(145, 171, 188, .3); border-radius: 4px; background: rgba(145, 171, 188, .07); padding: 7px 11px; color: #d4e1e4; font-size: 11px; transition: border-color .18s ease, color .18s ease; }
-.installCommandButton:hover { border-color: #73d8b2; color: #8be3bd; }
+.installCommandButton { flex: none; border: 1px solid #87e9c2; border-radius: 5px; background: #62c89b; padding: 8px 13px; color: #07170f; font-size: 11px; font-weight: 700; box-shadow: 0 2px 12px rgba(77, 211, 157, .2); transition: border-color .18s ease, background .18s ease, transform .18s ease; }
+.installCommandButton:hover { border-color: #b2f6d9; background: #89e5bb; transform: translateY(-1px); }
 
 .canvasSection {
   position: relative;
@@ -159,7 +163,9 @@
   .subhead { max-width: 280px; margin-right: auto; margin-left: auto; line-height: 1.5; }
   .scrollCue { margin-top: 27px; font-size: 8px; }
   .installCommandWrap { margin-top: 18px; }
+  .installControlsRow { align-items: flex-start; }
   .installPlatformTab { padding: 6px 9px; font-size: 8px; }
+  .releaseNotesLink { padding: 6px 7px; font-size: 8px; }
   .installCommand { gap: 8px; padding-left: 9px; }
   .installCommandCode { font-size: 9px; }
   .installCommandButton { padding: 6px 8px; font-size: 10px; }

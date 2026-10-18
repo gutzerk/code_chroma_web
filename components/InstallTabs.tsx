@@ -51,7 +51,7 @@ function CommandBlock({ title, cmd }: { title: string; cmd: string }) {
         <button
           type="button"
           onClick={copy}
-          className="rounded-md border border-[color:var(--border)] px-2.5 py-1 text-xs text-[color:var(--text-2)] transition-colors hover:border-[color:var(--added)] hover:text-[color:var(--added)]"
+          className="rounded-md border border-[#8de0b0] bg-[#6fcf97] px-3 py-1.5 text-xs font-semibold text-[#102018] shadow-[0_2px_12px_rgba(111,207,151,0.18)] transition-colors hover:border-[#b1f0c8] hover:bg-[#8de0b0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b1f0c8]"
         >
           {copied ? "Copied ✓" : "Copy"}
         </button>
@@ -95,8 +95,8 @@ export default function InstallTabs() {
             onClick={() => setPlatform(p)}
             className={`-mb-px rounded-t-lg border border-b-0 px-5 py-2.5 text-sm font-medium transition-colors ${
               platform.id === p.id
-                ? "border-[color:var(--border)] bg-[color:var(--surface-0)] text-[color:var(--text-1)]"
-                : "border-transparent text-[color:var(--text-2)] hover:text-[color:var(--text-1)]"
+                ? "border-[#8de0b0] bg-[#203b2c] text-[#effff4] shadow-[0_-2px_12px_rgba(111,207,151,0.12)]"
+                : "border-transparent text-[color:var(--text-2)] hover:border-[color:var(--border)] hover:bg-[color:var(--surface-0)] hover:text-[color:var(--text-1)]"
             }`}
           >
             {p.name}
@@ -116,16 +116,14 @@ export default function InstallTabs() {
         ))}
       </div>
 
-      <p className="mt-6 text-sm text-[color:var(--text-2)]">
-        To install a specific version, choose it from the{" "}
-        <a
-          href="https://github.com/gutzerk/code_chroma/releases"
-          className="text-[color:var(--accent)] underline underline-offset-4 hover:opacity-80"
-        >
-          GitHub Releases
-        </a>
-        .
-      </p>
+      <a
+        href="https://github.com/gutzerk/code_chroma/releases"
+        target="_blank"
+        rel="noreferrer"
+        className="mt-6 inline-flex items-center gap-2 rounded-md border border-[#6fcf97]/60 bg-[#203b2c] px-4 py-2.5 text-sm font-medium text-[#b9f2cc] transition-colors hover:border-[#9be5b3] hover:bg-[#294c37] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9be5b3]"
+      >
+        Release notes <span aria-hidden="true">↗</span>
+      </a>
     </>
   );
 }
