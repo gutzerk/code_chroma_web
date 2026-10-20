@@ -1,64 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { MINI } from "./featureMinis";
 
 const FEATURES = [
-  { k: "onboard", eye: "Onboarding", t: "Find your way around any project.", b: "Instead of walls of code you get a map of what the app actually does. Blocks are grouped by real relationships in the code, and the view is yours to arrange." },
-  { k: "grounded", eye: "Grounded", t: "Every block points to real code.", b: "The map is built from the source itself, and each block is tied to a specific place in it. Nothing is made up, so what you see is what runs." },
-  { k: "sync", eye: "Live", t: "The map never goes stale.", b: "Change the code or the canvas, and the other side updates right away. Unlike docs, the map stays true after every edit." },
-  { k: "review", eye: "Review", t: "See changes as diagrams, not diffs.", b: "Every update shows up on the map, so you can see what changed without reading it line by line." },
-  { k: "plan", eye: "Planning", t: "Plan a feature before you write it.", b: "Lay a feature out on the canvas and break it down: features into epics, epics into tasks." },
-  { k: "workspace", eye: "Workspace", t: "Code, map and agents in one window.", b: "Your editor, the live map and your AI agents sit side by side. Agents work on your real codebase, and the map keeps up as they go." },
+  { k: "plan", eye: "1 · Plan", t: "Draw the feature before anyone writes it.", b: "Describe what you want and get a process diagram of it: the blocks, the flow between them, what is new. You decide the design, so the agents build your idea, not theirs." },
+  { k: "workspace", eye: "2 · Build", t: "Agents work in parallel while you do something else.", b: "Start as many agents as you need, each on its own branch. You don't have to watch them type. Step away and work on the next thing." },
+  { k: "review", eye: "3 · Verify", t: "Review diagrams, not diffs.", b: "Every change lands on the same map you planned on. If the pattern and the whole picture match your design, you don't need to read the code inside." },
+  { k: "grounded", eye: "Trust", t: "Every block points to real code.", b: "The map is built from the source itself and each block is tied to a specific place in it. Nothing is made up, so what you see is what runs." },
+  { k: "sync", eye: "Trust", t: "The map never goes stale.", b: "Change the code or the canvas and the other side updates right away. Unlike docs, the map stays true after every edit." },
 ];
 
-const LOCAL_LIST = ["100% local, no telemetry", "Bring your own AI provider", "macOS, Linux and Windows"];
+const COMPARE = {
+  without: {
+    t: "Vibe coding without a map",
+    p: ["Agents change things and you don't know what.", "You read diffs you can't judge, or you skip them.", "Problems surface weeks later, in code nobody understands."],
+  },
+  with: {
+    t: "Vibe coding with CodeChroma",
+    p: ["You draw the design first, as a process diagram.", "Agents build it in parallel, so you stay free.", "You review the result on the same map and stay responsible for the project."],
+  },
+};
 
-const CMDS = {
-  macOS: "curl -fsSL https://codechroma.dev/install.sh | sh",
-  Linux: "curl -fsSL https://codechroma.dev/install.sh | sh",
-  Windows: 'powershell -ExecutionPolicy Bypass -c "irm https://codechroma.dev/install.ps1 | iex"',
-} as const;
+const ICON = { fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round", strokeLinejoin: "round", viewBox: "0 0 24 24", "aria-hidden": true } as const;
+const SAFE = [
+  { t: "Local by default", b: "CodeChroma runs on your machine and does not collect your source code.",
+    i: <svg {...ICON}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /><path d="M9.5 10l2 2 3.5-4" /></svg> },
+  { t: "Bring your own agent", b: "Connect the AI provider your company already approves. Its own privacy policy applies.",
+    i: <svg {...ICON}><circle cx="8" cy="12" r="3" /><path d="M11 12h10M18 12v3M15 12v2" /></svg> },
+  { t: "macOS, Linux and Windows", b: "Free to install on the machines your team already uses.",
+    i: <svg {...ICON}><rect x="3" y="5" width="18" height="12" rx="2" /><path d="M3 9h18M7 20h10" /></svg> },
+];
 
-function Install() {
-  const [os, setOs] = useState<keyof typeof CMDS>("macOS");
-  const [copied, setCopied] = useState(false);
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(CMDS[os]);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1400);
-    } catch {
-      // Clipboard access can be unavailable outside a secure browser context.
-    }
-  }
-
-  return (
-    <div className="install">
-      <div className="install-tabs" role="tablist" aria-label="Choose your operating system">
-        {(Object.keys(CMDS) as (keyof typeof CMDS)[]).map((k) => (
-          <button key={k} type="button" role="tab" aria-selected={os === k} onClick={() => setOs(k)}>{k}</button>
-        ))}
-      </div>
-      <div className="install-cmd">
-        <code>{CMDS[os]}</code>
-        <button className="btn btn-primary" type="button" onClick={copy}>{copied ? "Copied" : "Copy"}</button>
-      </div>
-      <p className="install-note">Pre-alpha: expect rough edges. Free and runs locally.</p>
-    </div>
-  );
-}
-
-/** Everything under the hero: feature grid, the "local" panel and the install box. */
+/** Everything under the hero: feature grid and the "local" panel. */
 export default function HomeSections() {
   return (
     <>
       <section className="sec">
         <div className="wrap">
           <div className="sec-head">
-            <span className="eyebrow">What you can do with the map</span>
-            <h2 className="h2">Explore, plan and review, all on one canvas.</h2>
+            <span className="eyebrow">A new language for software engineers</span>
+            <h2 className="h2">Build and review through process diagrams.</h2>
+            <p className="lead">
+              Code is the agents&rsquo; job now. Your job is the design and the decision to accept it, and diagrams are
+              the fastest way to do both.
+            </p>
           </div>
           <div className="cols">
             {FEATURES.map((f) => (
@@ -77,26 +63,57 @@ export default function HomeSections() {
 
       <section className="sec" style={{ paddingTop: 0 }}>
         <div className="wrap">
-          <div className="local">
-            <div>
-              <span className="eyebrow">Local</span>
-              <h2 className="h2" style={{ marginTop: 12 }}>Safe for work projects.</h2>
-              <p className="lead" style={{ marginTop: 14 }}>
-                CodeChroma runs entirely on your machine and sends no telemetry. You choose the AI provider, so you can
-                stick to the ones your company approves.
-              </p>
-            </div>
-            <ul className="check">
-              {LOCAL_LIST.map((x) => <li key={x}>{x}</li>)}
-            </ul>
+          <div className="sec-head">
+            <span className="eyebrow">Why it matters</span>
+            <h2 className="h2">Speed is easy. Staying in control is the hard part.</h2>
+          </div>
+          <div className="compare">
+            {([COMPARE.without, COMPARE.with] as const).map((c, i) => (
+              <article className={`compare-col${i ? " is-with" : ""}`} key={c.t}>
+                <h3 className="h3">{c.t}</h3>
+                <ul>
+                  {c.p.map((x) => (
+                    <li key={x}>{x}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="sec" id="install" style={{ paddingTop: 0 }}>
-        <div className="wrap final">
-          <h2 className="h2">See the map of your own project.</h2>
-          <Install />
+      <section className="sec" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <div className="sec-head">
+            <span className="eyebrow">Local</span>
+            <h2 className="h2">Built to run on your machine.</h2>
+            <p className="lead">
+              CodeChroma is a desktop app that works locally. Your source code stays with you, and you bring the AI
+              agent you already use.
+            </p>
+          </div>
+          <div className="safe">
+            {SAFE.map((x) => (
+              <article className="safe-item" key={x.t}>
+                <span className="safe-ico">{x.i}</span>
+                <h3 className="h3">{x.t}</h3>
+                <p className="muted">{x.b}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="sec" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <div className="sec-head">
+            <h2 className="h2">Try it on your own repo.</h2>
+            <p className="lead">Free, local, and pre-alpha. Install it, point it at a project and plan your next feature on the map.</p>
+            <div className="cta-row">
+              <a className="btn btn-primary" href="#install">Install free</a>
+              <Link className="btn" href="/documentation">Read the docs</Link>
+            </div>
+          </div>
         </div>
       </section>
     </>

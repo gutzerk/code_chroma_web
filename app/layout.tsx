@@ -17,10 +17,15 @@ const geistMono = Geist_Mono({
 });
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+const TITLE = "CodeChroma — Vibe-code at full speed, stay in control";
+const DESCRIPTION =
+  "Design in process diagrams, let AI agents build in parallel, and review the result on the same map. CodeChroma is a local desktop app that keeps you in control of the whole picture without reading every file.";
+
 export const metadata: Metadata = {
-  title: "CodeChroma — Navigate any codebase like a map, not a maze",
-  description:
-    "CodeChroma turns a repository into a zoomable, semantic architecture map — System → Pillar → Component → Service → Function → Logic Block. Built for humans and AI agents navigating LLM-era code.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: { title: TITLE, description: DESCRIPTION, type: "website", siteName: "CodeChroma" },
+  twitter: { card: "summary", title: TITLE, description: DESCRIPTION },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
