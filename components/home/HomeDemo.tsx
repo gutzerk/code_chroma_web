@@ -16,7 +16,7 @@ const STEPS = [
 /** The CodeChroma app window the scripted demo plays in. */
 function DemoWindow({ label, panelOpen, onTogglePanel }: { label: string; panelOpen: boolean; onTogglePanel: () => void }) {
   return (
-    <div className="win" id="win" aria-label={label} data-panel={panelOpen ? "on" : "off"}>
+    <div className="win" id="win" aria-label={label} data-panel={panelOpen ? "on" : "off"} data-sheet="off">
       <svg className="cursor" id="cursor" viewBox="0 0 20 20" aria-hidden="true">
         <path d="M3 2 L3 15 L6.5 11.8 L9 17 L11.2 16 L8.8 10.9 L13.5 10.5 Z" fill="#fff" stroke="#000" strokeWidth="1" />
       </svg>
@@ -27,7 +27,7 @@ function DemoWindow({ label, panelOpen, onTogglePanel }: { label: string; panelO
         <span className="pill">⎇ task/refresh-tokens</span>
         <button className="pill wfpill" id="wfpill" type="button" data-act="noop" hidden />
         <button className="pill panelbtn" id="panelbtn" type="button" aria-pressed={panelOpen} onClick={onTogglePanel}>{panelOpen ? "Hide panel" : "Agent panel"}</button>
-        <button className="pill run" id="run" type="button">▶ Run workflow</button>
+        <button className="pill run" id="run" type="button">▶ Run<span className="lg"> workflow</span></button>
         <button className="pill pr" id="pr" type="button">Create PR ↗</button>
       </div>
       <div className="win-body">
