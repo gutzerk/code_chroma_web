@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 const publicAsset = (path: string) => `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${path}`;
 
@@ -243,7 +244,66 @@ const DIAGRAM_KINDS = [
 ];
 
 /* ---- Quick start (step by step) ---- */
+const INSTALL_CMDS = {
+  "macOS / Linux": "curl -fsSL https://codechroma.dev/install.sh | sh",
+  Windows: 'powershell -ExecutionPolicy Bypass -c "irm https://codechroma.dev/install.ps1 | iex"',
+} as const;
+
+/** Step 1 of the quick start: pick an OS, copy the command. */
+function InstallStep() {
+  const [os, setOs] = useState<keyof typeof INSTALL_CMDS>("macOS / Linux");
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(INSTALL_CMDS[os]);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      // Clipboard can be unavailable outside a secure context.
+    }
+  }
+
+  return (
+    <div className="mt-3">
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Choose your operating system">
+        {(Object.keys(INSTALL_CMDS) as (keyof typeof INSTALL_CMDS)[]).map((k) => (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={os === k}
+            onClick={() => setOs(k)}
+            className="min-h-10 rounded-md border border-[color:var(--border)] px-3 text-sm text-[color:var(--text-2)] aria-selected:border-[color:var(--accent)] aria-selected:text-[color:var(--text-1)]"
+          >
+            {k}
+          </button>
+        ))}
+      </div>
+      <div className="mt-2 flex flex-col gap-2 rounded-md border border-[color:var(--border)] bg-[color:var(--surface-0)] p-2 sm:flex-row sm:items-center">
+        <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap px-2 py-1 font-mono text-sm text-[color:var(--text-1)]">
+          {INSTALL_CMDS[os]}
+        </code>
+        <button
+          type="button"
+          onClick={copy}
+          className="min-h-11 rounded-md bg-[color:var(--accent)] px-4 text-sm font-medium text-[color:var(--surface-0)]"
+        >
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+      <Link href="/install" className="mt-2 inline-flex min-h-11 items-center text-sm text-[color:var(--accent)] hover:underline">
+        All platforms and next steps →
+      </Link>
+    </div>
+  );
+}
+
 const QUICK_START_STEPS = [
+  {
+    title: "Install CodeChroma",
+    body: "One command, free, runs locally. Pre-alpha, so expect rough edges.",
+  },
   {
     title: "Open a repository",
     body: "Point CodeChroma at any repo. It analyzes the code and builds the semantic map: a zoomable System → Pillar → Component → Service → Function hierarchy.",
@@ -361,20 +421,75 @@ function SettingGroup({ title, items }: { title: string; items: Setting[] }) {
 }
 
 /** A looping product clip, muted and inline (files live in /public). */
-function Clip({ name, label }: { name: string; label: string }) {
+function Clip({
+  name,
+  label,
+  title,
+  takeaway,
+  textHref,
+}: {
+  name: string;
+  label: string;
+  title: string;
+  takeaway: string;
+  /** Anchor of the written version of the same steps. */
+  textHref?: string;
+}) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(true);
+
+  function toggle() {
+    const v = ref.current;
+    if (!v) return;
+    if (v.paused) {
+      void v.play();
+      setPlaying(true);
+    } else {
+      v.pause();
+      setPlaying(false);
+    }
+  }
+
   return (
-    <video
-      className="block w-full rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-1)]"
-      autoPlay
-      muted
-      loop
-      playsInline
-      preload="metadata"
-      aria-label={label}
-    >
-      <source src={publicAsset(`/${name}.webm`)} type="video/webm" />
-      <source src={publicAsset(`/${name}.mp4`)} type="video/mp4" />
-    </video>
+    <figure className="overflow-hidden rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-1)]">
+      <video
+        ref={ref}
+        className="block w-full"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-label={label}
+      >
+        <source src={publicAsset(`/${name}.webm`)} type="video/webm" />
+        <source src={publicAsset(`/${name}.mp4`)} type="video/mp4" />
+      </video>
+      <figcaption className="flex flex-col gap-3 border-t border-[color:var(--border-faint)] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div className="min-w-0">
+          <div className="text-base font-semibold text-[color:var(--text-1)]">{title}</div>
+          <p className="mt-0.5 text-sm leading-relaxed text-[color:var(--text-2)]">{takeaway}</p>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={toggle}
+            aria-pressed={!playing}
+            className="inline-flex min-h-11 items-center rounded-md border border-[color:var(--border)] px-3 text-sm text-[color:var(--text-1)] transition-colors hover:border-[color:var(--accent)]"
+          >
+            {playing ? "Pause" : "Play"}
+          </button>
+          {textHref && (
+            <a
+              href={textHref}
+              className="inline-flex min-h-11 items-center px-2 text-sm text-[color:var(--accent)] hover:underline"
+            >
+              Read the same steps as text ↑
+            </a>
+          )}
+        </div>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -466,24 +581,31 @@ const SECTIONS: Section[] = [
     id: "quick-start",
     group: "Start here",
     label: "Quick start",
-    title: "From repo to verified PR in five steps",
+    title: "From install to verified PR in six steps",
     blurb: "Exploring the map works offline and needs no API key. Add an AI provider when you are ready to run agents.",
     content: (
       <>
-        <ol className="space-y-3">
+        <Clip
+          name="all-in-one"
+          label="CodeChroma workspace: code, map and agents in one window"
+          title="The whole workspace in one window"
+          takeaway="Code, the map and your agents side by side: this is what the six steps below set up."
+          textHref="#quick-start-steps"
+        />
+        <ol id="quick-start-steps" className="scroll-mt-24 space-y-3">
           {QUICK_START_STEPS.map((s, i) => (
-            <li key={s.title} className="flex gap-4 rounded-lg border border-[color:var(--border-faint)] bg-[color:var(--surface-1)] p-5">
+            <li key={s.title} className="flex gap-3 rounded-lg border border-[color:var(--border-faint)] bg-[color:var(--surface-1)] p-4 sm:gap-4 sm:p-5">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[color:var(--accent)] bg-[color:var(--surface-2)] font-mono text-base text-[color:var(--accent)]">
                 {i + 1}
               </span>
-              <div>
+              <div className="min-w-0">
                 <div className="text-lg font-semibold text-[color:var(--text-1)]">{s.title}</div>
                 <p className="mt-1 text-base leading-relaxed text-[color:var(--text-2)]">{s.body}</p>
+                {i === 0 && <InstallStep />}
               </div>
             </li>
           ))}
         </ol>
-        <Clip name="all-in-one" label="CodeChroma workspace: code, map and agents in one window" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {OVERVIEW_POINTS.map((p) => (
             <Card key={p.title} title={p.title} body={p.body} />
@@ -505,7 +627,12 @@ const SECTIONS: Section[] = [
             <Card key={p.title} title={p.title} body={p.body} />
           ))}
         </div>
-        <Clip name="planning" label="Planning a feature on the CodeChroma map" />
+        <Clip
+          name="planning"
+          label="Planning a feature on the CodeChroma map"
+          title="Planning a feature on the map"
+          takeaway="Describe a feature, answer one question, and watch it appear as dashed, planned blocks."
+        />
       </>
     ),
   },
@@ -536,7 +663,12 @@ const SECTIONS: Section[] = [
             <Card key={p.title} title={p.title} body={p.body} />
           ))}
         </div>
-        <Clip name="review" label="Reviewing a change as diagrams on the CodeChroma map" />
+        <Clip
+          name="review"
+          label="Reviewing a change as diagrams on the CodeChroma map"
+          title="Reviewing a change as a diagram"
+          takeaway="Blocks that match your plan turn solid; anything that drifted stays flagged so you can open it."
+        />
       </>
     ),
   },
@@ -553,7 +685,12 @@ const SECTIONS: Section[] = [
             <Card key={d.name} title={d.name} body={d.body} tag="diagram kind" />
           ))}
         </div>
-        <Clip name="schema-diagram" label="Generating a diagram on the CodeChroma map" />
+        <Clip
+          name="schema-diagram"
+          label="Generating a diagram on the CodeChroma map"
+          title="Generating a diagram"
+          takeaway="Ask for a diagram of any part of the code and it is drawn from the real source."
+        />
       </>
     ),
   },
@@ -564,17 +701,43 @@ const SECTIONS: Section[] = [
     title: "Zoom in from System to Function",
     blurb: "CodeChroma turns a repo into a zoomable semantic map of what the code actually does, not its folder layout.",
     content: (
-      <div className="space-y-2">
-        {LEVELS.map((l, i) => (
-          <div key={l.name} className="flex items-start gap-4 rounded-lg border border-[color:var(--border-faint)] bg-[color:var(--surface-1)] px-4 py-3">
-            <div className="flex min-w-[7rem] items-center gap-2">
-              <span className="font-mono text-xs text-[color:var(--text-3)]">0{i + 1}</span>
-              <span className="text-lg font-semibold text-[color:var(--text-1)]">{l.name}</span>
+      <>
+        {/* Nested boxes: each zoom level lives inside the one above it. */}
+        <div
+          role="img"
+          aria-label="Zoom levels, from System at the outside to Function at the centre"
+          className="rounded-lg border border-dashed border-[color:var(--border)] bg-[color:var(--surface-1)] p-3 sm:p-5"
+        >
+          {LEVELS.reduceRight<React.ReactNode>(
+            (inner, l, i) => (
+              <div className="rounded-md border border-[color:var(--border)] bg-[color:var(--surface-2)] p-2.5 sm:p-3.5">
+                <div className="mb-2 font-mono text-[11px] uppercase tracking-wide text-[color:var(--text-3)] sm:text-xs">
+                  0{i + 1} · {l.name}
+                </div>
+                {inner}
+              </div>
+            ),
+            null,
+          )}
+        </div>
+        <div className="space-y-2">
+          {LEVELS.map((l, i) => (
+            <div key={l.name} className="flex flex-col gap-1 rounded-lg border border-[color:var(--border-faint)] bg-[color:var(--surface-1)] px-4 py-3 sm:flex-row sm:items-start sm:gap-4">
+              <div className="flex shrink-0 items-center gap-2 sm:min-w-[7rem]">
+                <span className="font-mono text-xs text-[color:var(--text-3)]">0{i + 1}</span>
+                <span className="text-lg font-semibold text-[color:var(--text-1)]">{l.name}</span>
+              </div>
+              <p className="text-base leading-relaxed text-[color:var(--text-2)]">{l.detail}</p>
             </div>
-            <p className="text-base leading-relaxed text-[color:var(--text-2)]">{l.detail}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+        <Link
+          href="/canvas"
+          className="inline-flex min-h-11 items-center rounded-md border border-[color:var(--border)] px-4 text-sm text-[color:var(--text-1)] transition-colors hover:border-[color:var(--accent)]"
+        >
+          Open the live map →
+        </Link>
+      </>
     ),
   },
   {
@@ -603,16 +766,17 @@ const SECTIONS: Section[] = [
     content: (
       <div className="divide-y divide-[color:var(--border-faint)] overflow-hidden rounded-lg border border-[color:var(--border)] bg-[color:var(--surface-1)]">
         {panel.controls.map((c) => (
-          <div key={c.name} className="flex flex-col gap-6 p-5 sm:flex-row sm:items-start">
-            <div className="flex min-w-[9rem] items-center gap-3 sm:flex-col sm:items-start sm:gap-1">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[color:var(--border)] bg-[color:var(--surface-2)] text-base text-[color:var(--accent)]">
-                <c.Icon />
-              </span>
-              <div className="text-lg font-semibold text-[color:var(--text-1)]">{c.name}</div>
-            </div>
-            <p className="text-base leading-relaxed text-[color:var(--text-2)]">
+          <div
+            key={c.name}
+            className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 p-4 sm:p-5 md:grid-cols-[2.25rem_13.75rem_minmax(0,1fr)] md:items-start md:gap-x-4"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[color:var(--border)] bg-[color:var(--surface-2)] text-base text-[color:var(--accent)]">
+              <c.Icon />
+            </span>
+            <div className="text-lg font-semibold leading-9 text-[color:var(--text-1)] md:whitespace-nowrap">{c.name}</div>
+            <p className="col-span-2 text-base leading-6 text-[color:var(--text-2)] md:col-span-1">
               {c.what}
-              {c.tip && <span className="mt-1 block font-mono text-xs text-[color:var(--accent)]">→ {c.tip}</span>}
+              {c.tip && <span className="mt-1.5 block text-sm text-[color:var(--accent)]">→ {c.tip}</span>}
             </p>
           </div>
         ))}

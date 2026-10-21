@@ -448,6 +448,10 @@ export function initHomeDemo(root: HTMLElement): () => void {
   // ---------- actions ----------
   function openNode(id: string) {
     if (id === "store" && !S.plan) return;
+    // clicking the planned block again closes its description (no separate ✕ button)
+    if (id === "store" && S.plan !== "done" && S.drawer === "desc" && S.sel === "store") {
+      S.drawer = ""; S.sel = null; render(); return;
+    }
     S.opened = true; S.sel = id; S.file = 0; S.panel = "code";
     if (id === "auth" && S.plan === "done") S.reviewed = true;
     if (id === "store" && S.plan !== "done") {
@@ -563,7 +567,6 @@ export function initHomeDemo(root: HTMLElement): () => void {
   $("run").onclick = openPicker;
   const replay = root.querySelector<HTMLElement>("#replay");
   if (replay) replay.onclick = () => startScene(0);
-  $("desc-x").onclick = () => { S.drawer = ""; S.sel = null; render(); };
   $("pr").onclick = () => { $("pr").textContent = "PR opened ✓"; $("pr").classList.add("sent"); };
   root.querySelectorAll<HTMLElement>(".opt").forEach((b) => { b.onclick = answer; });
   root.querySelectorAll<HTMLElement>("#flow li").forEach((li) => {
@@ -611,8 +614,7 @@ export function initHomeDemo(root: HTMLElement): () => void {
         [4550, () => { rip(); answer(); }],
         [5050, () => mv(nodeEls.store)],
         [5700, () => { rip(); openNode("store"); }],
-        [6900, () => mv($("desc-x"))],
-        [7550, () => { rip(); $("desc-x").click(); }],
+        [7550, () => { S.drawer = ""; S.sel = null; render(); }],
       ];
       for (let i = 1; i <= TEXT.length; i++) ev.push([1200 + i * 30, () => { $("ptext").textContent = TEXT.slice(0, i); }]);
       return { len: 9000, ev };

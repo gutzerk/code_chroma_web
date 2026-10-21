@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import CanvasBackLink from "./CanvasBackLink";
 import CanvasHint from "./CanvasHint";
 import styles from "./page.module.css";
@@ -16,7 +17,10 @@ export default function CanvasPage() {
       <header className={styles.toolbar}>
         <CanvasBackLink className={styles.backLink} />
         <div className={styles.pageTitle}>Live map · sample project</div>
-        <p className={styles.hint}>Drag to pan <span>·</span> Scroll to zoom <span>·</span> Click a block for its code</p>
+        <div className={styles.actions}>
+          <p className={styles.hint}>Drag to pan <span>·</span> Scroll to zoom <span>·</span> Click a block for its code</p>
+          <Link className={styles.install} href="/install">Install free</Link>
+        </div>
       </header>
       <CanvasHint />
       <iframe

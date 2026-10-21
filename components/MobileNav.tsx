@@ -30,7 +30,7 @@ export default function MobileNav() {
         aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
         aria-controls="mobile-menu"
-        className="flex h-9 w-9 items-center justify-center rounded-md border border-[color:var(--border)] text-[color:var(--text-2)] transition-colors hover:text-[color:var(--text-1)]"
+        className="flex h-11 w-11 items-center justify-center rounded-md border border-[color:var(--border)] text-[color:var(--text-2)] transition-colors hover:text-[color:var(--text-1)]"
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
@@ -48,7 +48,7 @@ export default function MobileNav() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm text-[color:var(--text-2)] transition-colors hover:text-[color:var(--text-1)]"
+                className="flex min-h-11 items-center rounded-md px-3 py-2.5 text-base text-[color:var(--text-2)] transition-colors hover:text-[color:var(--text-1)]"
                 activeClassName="!bg-[color:var(--surface-2)] !text-[color:var(--text-1)]"
               >
                 {item.label}

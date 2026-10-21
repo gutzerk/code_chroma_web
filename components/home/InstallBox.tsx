@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const CMDS = {
   macOS: "curl -fsSL https://codechroma.dev/install.sh | sh",
@@ -36,6 +37,9 @@ export default function InstallBox() {
         <code>{CMDS[os]}</code>
         <button className="btn btn-primary" type="button" onClick={copy}>{copied ? "Copied" : "Copy"}</button>
       </div>
+      <p className="install-more">
+        <Link href="/install">All platforms and next steps →</Link>
+      </p>
     </div>
   );
 }
