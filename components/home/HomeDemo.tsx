@@ -5,11 +5,12 @@ import { useEffect, useRef } from "react";
 import { initHomeDemo } from "./demoEngine";
 import InstallBox from "./InstallBox";
 
+/** `m` is what the map shows at that step, so each step adds something new instead of repeating the story. */
 const STEPS = [
-  { s: 1, t: "Plan", d: "Describe a feature. The agent asks, then draws it as a diagram you own." },
-  { s: 2, t: "Launch agents", d: "Start as many as you need, each one on its own branch." },
-  { s: 3, t: "Walk away", d: "Work on something else while they build." },
-  { s: 4, t: "Verify", d: "Check the result on the same map: it matches your plan or it doesn't." },
+  { s: 1, t: "Plan", d: "Describe a feature. The agent asks, then draws it as a diagram you own.", m: "Map: dashed blocks appear" },
+  { s: 2, t: "Launch agents", d: "Start as many as you need, each one on its own branch.", m: "Map: same blocks, each claimed by an agent" },
+  { s: 3, t: "Walk away", d: "Work on something else while they build.", m: "Map: progress only, nothing to watch" },
+  { s: 4, t: "Verify", d: "Check the result on the same map: it matches your plan or it doesn't.", m: "Map: blocks turn solid, verdict appears" },
 ];
 
 /** The CodeChroma app window the scripted demo plays in. */
@@ -57,8 +58,7 @@ function DemoWindow({ label }: { label: string }) {
             </section>
             <section id="d-desc">
               <div className="d-title">
-                <b>Token store</b> planned · no code yet<span className="grow" />
-                <button className="x" id="desc-x" type="button" aria-label="Close description">✕</button>
+                <b>Token store</b> planned · no code yet
               </div>
               <p>
                 A place to keep refresh tokens, so users stay signed in after the access token expires. It has no
@@ -92,7 +92,7 @@ export default function HomeDemo() {
             else, and every change lands on a map you already understand.
           </p>
           <div className="cta">
-            <a className="btn btn-primary" href="#install">Install free</a>
+            <Link className="btn btn-primary" href="/install">Install free</Link>
             <Link className="btn" href="/canvas">Explore a real map</Link>
           </div>
           <ol className="flow" id="flow">
@@ -103,6 +103,7 @@ export default function HomeDemo() {
                   <span>
                     <strong>{x.t}</strong>
                     <span className="d">{x.d}</span>
+                    <span className="m">{x.m}</span>
                   </span>
                 </button>
                 <i className="bar" />

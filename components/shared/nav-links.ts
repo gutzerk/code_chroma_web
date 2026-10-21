@@ -3,8 +3,8 @@
     menu includes every item. */
 export const NAV_ITEMS: { href: string; label: string }[] = [
   { href: "/", label: "Home" },
-  { href: "/canvas", label: "Live map" },
   { href: "/documentation", label: "Documentation" },
+  { href: "/canvas", label: "Live map" },
   { href: "/install", label: "Install" },
 ];
 

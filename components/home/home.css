@@ -46,6 +46,17 @@
 .cch .install-cmd code { flex: 1; font-size: 13.5px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
 .cch .install-cmd code::-webkit-scrollbar { display: none; }
 .cch .install-cmd .btn { height: 32px; padding: 0 12px; font-size: 13px; }
+.cch .install-more { margin: 10px 2px 0; font-size: 13.5px; }
+.cch .install-more a { color: var(--accent); text-decoration: none; display: inline-block; padding: 6px 0; }
+.cch .install-more a:hover { text-decoration: underline; }
+.cch .install-tabs button { min-height: 36px; }
+@media (max-width: 640px) {
+  .cch .install-cmd { flex-wrap: wrap; }
+  .cch .install-cmd code { flex-basis: 100%; }
+  .cch .install-cmd .btn { height: 44px; width: 100%; }
+  .cch .note .cta { flex-wrap: wrap; }
+  .cch .note .cta .btn { flex: 1 1 140px; height: 44px; justify-content: center; }
+}
 .cch .install-note { margin: 0 2px; font-size: 13px; color: var(--faint); }
 
 .cch .frame-bar { display: flex; align-items: center; height: 38px; padding: 0 14px; border-bottom: 1px solid var(--line);
@@ -118,6 +129,8 @@
 .cch .flow .num { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line-2); display: grid; place-items: center; font: 500 12px var(--mono); color: var(--muted); }
 .cch .flow strong { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
 .cch .flow span.d { display: block; font-size: 13px; color: var(--muted); line-height: 1.4; margin-top: 2px; }
+.cch .flow span.m { display: block; margin-top: 4px; font: 500 11.5px var(--mono); color: var(--accent); letter-spacing: .01em; }
+.cch .flow button { min-height: 44px; }
 .cch .flow li.on button { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .cch .flow li.on .num { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .cch .flow li.done .num { border-color: var(--accent); color: var(--accent); }
@@ -380,10 +393,15 @@
 .cch .final { display: grid; justify-items: start; gap: 18px; }
 .cch .final .install { width: 100%; }
 
-.cch .safe { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.cch .safe-item { display: grid; gap: 10px; align-content: start; padding: 22px; border: 1px solid var(--line-2); border-radius: 14px; background: var(--bg-2); }
+/* icon-left, one row per item; stacks to icon+title / text on phones */
+.cch .safe { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.cch .safe-item { display: grid; grid-template-columns: 40px minmax(0, 250px) 1fr; column-gap: 16px; align-items: center; padding: 16px 20px; border: 1px solid var(--line-2); border-radius: 14px; background: var(--bg-2); }
+.cch .safe-item h3 { margin: 0; }
 .cch .safe-item p { margin: 0; font-size: 15px; }
-.cch .safe-ico { width: 40px; height: 40px; display: grid; place-items: center; margin-bottom: 4px; border-radius: 10px; color: var(--accent);
+@media (max-width: 760px) {
+  .cch .safe-item { grid-template-columns: 40px 1fr; row-gap: 8px; padding: 14px 16px; }
+  .cch .safe-item p { grid-column: 1 / -1; }
+}
+.cch .safe-ico { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; color: var(--accent);
   background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent); }
 .cch .safe-ico svg { width: 20px; height: 20px; }
-@media (max-width: 860px) { .cch .safe { grid-template-columns: 1fr; } }

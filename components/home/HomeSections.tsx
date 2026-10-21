@@ -4,9 +4,6 @@ import Link from "next/link";
 import { MINI } from "./featureMinis";
 
 const FEATURES = [
-  { k: "plan", eye: "1 · Plan", t: "Draw the feature before anyone writes it.", b: "Describe what you want and get a process diagram of it: the blocks, the flow between them, what is new. You decide the design, so the agents build your idea, not theirs." },
-  { k: "workspace", eye: "2 · Build", t: "Agents work in parallel while you do something else.", b: "Start as many agents as you need, each on its own branch. You don't have to watch them type. Step away and work on the next thing." },
-  { k: "review", eye: "3 · Verify", t: "Review diagrams, not diffs.", b: "Every change lands on the same map you planned on. If the pattern and the whole picture match your design, you don't need to read the code inside." },
   { k: "grounded", eye: "Trust", t: "Every block points to real code.", b: "The map is built from the source itself and each block is tied to a specific place in it. Nothing is made up, so what you see is what runs." },
   { k: "sync", eye: "Trust", t: "The map never goes stale.", b: "Change the code or the canvas and the other side updates right away. Unlike docs, the map stays true after every edit." },
 ];
@@ -39,11 +36,11 @@ export default function HomeSections() {
       <section className="sec">
         <div className="wrap">
           <div className="sec-head">
-            <span className="eyebrow">A new language for software engineers</span>
-            <h2 className="h2">Build and review through process diagrams.</h2>
+            <span className="eyebrow">Why you can trust the map</span>
+            <h2 className="h2">A diagram you can rely on.</h2>
             <p className="lead">
-              Code is the agents&rsquo; job now. Your job is the design and the decision to accept it, and diagrams are
-              the fastest way to do both.
+              Code is the agents&rsquo; job now. Your job is the design and the decision to accept it, so the map has
+              to be true.
             </p>
           </div>
           <div className="cols">
@@ -110,7 +107,7 @@ export default function HomeSections() {
             <h2 className="h2">Try it on your own repo.</h2>
             <p className="lead">Free, local, and pre-alpha. Install it, point it at a project and plan your next feature on the map.</p>
             <div className="cta-row">
-              <a className="btn btn-primary" href="#install">Install free</a>
+              <Link className="btn btn-primary" href="/install">Install free</Link>
               <Link className="btn" href="/documentation">Read the docs</Link>
             </div>
           </div>

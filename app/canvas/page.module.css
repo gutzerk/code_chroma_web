@@ -3,9 +3,9 @@
   inset: 0;
   z-index: 100;
   display: grid;
-  grid-template-rows: 48px minmax(0, 1fr);
+  grid-template-rows: 56px minmax(0, 1fr);
   overflow: hidden;
-  background: #06101f;
+  background: #0b0d12;
   color: #e1e9f1;
 }
 
@@ -17,10 +17,9 @@
   align-items: center;
   gap: 16px;
   padding: 0 18px;
-  border-bottom: 1px solid rgba(169, 191, 213, .16);
-  background: #101923;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, .2);
-  font-family: var(--font-geist-mono), monospace;
+  border-bottom: 1px solid #262b38;
+  background: #0b0d12;
+  font-family: var(--font-geist-sans), sans-serif;
 }
 
 .backLink {
@@ -28,31 +27,41 @@
   display: inline-flex;
   align-items: center;
   gap: 9px;
-  color: #bfd0df;
-  font-size: 12px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #262b38;
+  border-radius: 999px;
+  background: #151821;
+  color: #c4c8d4;
+  font-size: 13px;
   text-decoration: none;
 }
 
 .backLink span:first-child {
-  color: #72dcb5;
-  font-size: 18px;
+  color: #8fb0ff;
+  font-size: 16px;
   line-height: 1;
 }
 
-.backLink:hover { color: #fff; }
+.backLink:hover { color: #fff; border-color: #566079; }
 
 .pageTitle {
   color: #e1e9f1;
-  font-size: 11px;
-  letter-spacing: .02em;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .01em;
   white-space: nowrap;
 }
 
 .hint {
   justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   margin: 0;
-  color: #8797a7;
-  font-size: 10px;
+  color: #8a91a3;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
   white-space: nowrap;
 }
 
@@ -63,7 +72,7 @@
   width: 100%;
   height: 100%;
   border: 0;
-  background: #06101f;
+  background: #0b0d12;
 }
 
 .tip {
@@ -73,9 +82,9 @@
   bottom: 18px;
   max-width: 340px;
   padding: 14px 16px;
-  border: 1px solid rgba(114, 220, 181, .4);
+  border: 1px solid rgba(143, 176, 255, .4);
   border-radius: 12px;
-  background: rgba(16, 25, 35, .96);
+  background: rgba(21, 24, 33, .97);
   box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
   font-size: 13px;
   line-height: 1.5;
@@ -89,17 +98,44 @@
   border: 0;
   border-radius: 8px;
   padding: 7px 14px;
-  background: #72dcb5;
-  color: #06130c;
+  min-height: 44px;
+  background: #8fb0ff;
+  color: #0b0d12;
   font: 600 12px var(--font-geist-sans), sans-serif;
 }
 
-.tip button:hover { background: #8de0c4; }
-.tip button:focus-visible { outline: 2px solid #b1f0c8; outline-offset: 2px; }
+.tip button:hover { background: #a8c1ff; }
+.tip button:focus-visible { outline: 2px solid #c9d8ff; outline-offset: 2px; }
 
-@media (max-width: 600px) {
-  .tip { left: 12px; right: 12px; bottom: 12px; max-width: none; }
-  .toolbar { grid-template-columns: 1fr auto; padding: 0 12px; }
-  .pageTitle { justify-self: end; }
+/* Install: always one tap away from the map */
+.install {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: #8fb0ff;
+  color: #0b0d12;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.install:hover { background: #a8c1ff; }
+.install:focus-visible, .backLink:focus-visible { outline: 2px solid #c9d8ff; outline-offset: 2px; }
+
+/* Tablet: drop the hint text, keep title centred */
+@media (max-width: 900px) {
   .hint { display: none; }
 }
+
+/* Phone: back + Install only, title hidden to leave room */
+@media (max-width: 600px) {
+  .tip { left: 12px; right: 12px; bottom: 12px; max-width: none; }
+  .toolbar { grid-template-columns: 1fr auto; padding: 0 12px; gap: 8px; }
+  .pageTitle { display: none; }
+  .backLink { padding: 0 12px; }
+}
+
+.actions { justify-self: end; display: flex; align-items: center; gap: 16px; }
