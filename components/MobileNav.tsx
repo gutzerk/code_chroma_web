@@ -7,7 +7,7 @@ import { NAV_ITEMS } from "./shared/nav-links";
 /**
  * Mobile-only hamburger menu. On `sm:` and up the desktop nav links are shown
  * and this button is hidden. Contains the links that Nav hides on small
- * screens so users can reach Home / Documentation / Configuration / Install.
+ * screens so users can reach Home / Live map / Documentation / Install.
  */
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -40,7 +40,7 @@ export default function MobileNav() {
       {open && (
         <div
           id="mobile-menu"
-          className="fixed inset-x-0 top-[57px] border-t border-[color:var(--border-faint)] bg-[rgba(16,22,18,0.97)] px-5 py-4 backdrop-blur sm:hidden"
+          className="fixed inset-x-0 top-[57px] border-t border-[color:var(--border-faint)] bg-[rgba(11,14,17,0.97)] px-5 py-4 backdrop-blur sm:hidden"
         >
           <div className="flex flex-col gap-1">
             {NAV_ITEMS.map((item) => (

@@ -5,21 +5,22 @@
   page shares the canvas's visual language (surfaces, accent, per-view hues).
 */
 :root {
-  --surface-0: #1b1d23; /* page / app background */
-  --surface-1: #16181d; /* nav, footer, wells */
-  --surface-2: #22252e; /* blocks, cards, tiles */
-  --surface-3: #2b2f3a; /* dropdowns, lifted tiles */
-  --surface-4: #23262e; /* window title bars */
-  --surface-code: #1b1e26; /* code wells */
+  /* Same palette as the home page (components/home/home.css) so every page reads as one product. */
+  --surface-0: #0b0e11; /* page / app background */
+  --surface-1: #0f1418; /* nav, footer, wells */
+  --surface-2: #131a20; /* blocks, cards, tiles */
+  --surface-3: #182129; /* dropdowns, lifted tiles */
+  --surface-4: #131a20; /* window title bars */
+  --surface-code: #0f1418; /* code wells */
 
-  --border: #3a3f4b;
-  --border-faint: #3a3d47;
+  --border: #2c3843;
+  --border-faint: #222c35;
 
-  --text-1: #e6e6e6;
-  --text-2: #9aa0a6;
-  --text-3: #6b7280;
+  --text-1: #e9eef1;
+  --text-2: #94a2ad;
+  --text-3: #6f7e89;
 
-  --accent: #8ab4f8;
+  --accent: #6fcf97;
   --primary: #2f6feb;
   --link: #6ea8fe;
 
@@ -47,11 +48,7 @@ body {
   color: var(--text-1);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background:
-    radial-gradient(1100px 700px at 85% -10%, rgba(51, 232, 143, 0.10), transparent 60%),
-    radial-gradient(900px 600px at 0% 110%, rgba(47, 182, 115, 0.08), transparent 55%),
-    linear-gradient(180deg, #10160f 0%, #0c0f0b 40%, var(--surface-0) 100%);
-  background-attachment: fixed;
+  background: var(--surface-0);
 }
 
 /* Rectangular, themed scrollbar to keep the dev-tool feel even on overflow panels. */

@@ -66,7 +66,39 @@
   background: #06101f;
 }
 
+.tip {
+  position: absolute;
+  z-index: 2;
+  left: 18px;
+  bottom: 18px;
+  max-width: 340px;
+  padding: 14px 16px;
+  border: 1px solid rgba(114, 220, 181, .4);
+  border-radius: 12px;
+  background: rgba(16, 25, 35, .96);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .4);
+  font-size: 13px;
+  line-height: 1.5;
+  color: #bfd0df;
+}
+
+.tip b { display: block; color: #e1e9f1; font-size: 14px; }
+.tip p { margin: 6px 0 12px; }
+
+.tip button {
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 14px;
+  background: #72dcb5;
+  color: #06130c;
+  font: 600 12px var(--font-geist-sans), sans-serif;
+}
+
+.tip button:hover { background: #8de0c4; }
+.tip button:focus-visible { outline: 2px solid #b1f0c8; outline-offset: 2px; }
+
 @media (max-width: 600px) {
+  .tip { left: 12px; right: 12px; bottom: 12px; max-width: none; }
   .toolbar { grid-template-columns: 1fr auto; padding: 0 12px; }
   .pageTitle { justify-self: end; }
   .hint { display: none; }

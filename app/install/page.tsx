@@ -4,7 +4,7 @@ import InstallTabs from "@/components/InstallTabs";
 export const metadata: Metadata = {
   title: "Install — CodeChroma",
   description:
-    "Install CodeChroma on macOS, Linux, or Windows with the platform-specific install script.",
+    "Install CodeChroma free on macOS, Linux or Windows with one command, check the script first, and see what to do after you install.",
 };
 
 export default function InstallPage() {

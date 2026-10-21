@@ -28,7 +28,7 @@ export default function CanvasBackLink({ className }: { className: string }) {
   }
 
   return (
-    <Link className={className} href="/#canvas-demo" aria-label="Back to CodeChroma home" onClick={preserveDemoState}>
+    <Link className={className} href="/" aria-label="Back to CodeChroma home" onClick={preserveDemoState}>
       <span aria-hidden="true">←</span> <span>CodeChroma</span>
     </Link>
   );

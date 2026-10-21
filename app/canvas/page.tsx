@@ -1,16 +1,24 @@
+import type { Metadata } from "next";
 import CanvasBackLink from "./CanvasBackLink";
+import CanvasHint from "./CanvasHint";
 import styles from "./page.module.css";
 
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+export const metadata: Metadata = {
+  title: "Live map — CodeChroma",
+  description: "Explore a real CodeChroma map of a sample project: click any block to read the code behind it.",
+};
 
 export default function CanvasPage() {
   return (
     <main className={styles.page}>
       <header className={styles.toolbar}>
         <CanvasBackLink className={styles.backLink} />
-        <div className={styles.pageTitle}>Architecture Canvas</div>
-        <p className={styles.hint}>Drag to pan <span>·</span> Scroll to zoom</p>
+        <div className={styles.pageTitle}>Live map · sample project</div>
+        <p className={styles.hint}>Drag to pan <span>·</span> Scroll to zoom <span>·</span> Click a block for its code</p>
       </header>
+      <CanvasHint />
       <iframe
         className={styles.canvas}
         src={`${BASE_PATH}/product-canvas/index.html?autoexpand=off&initialZoom=1.3&resetCamera=on&wheelzoom=on`}
