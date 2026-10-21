@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { initHomeDemo } from "./demoEngine";
 import InstallBox from "./InstallBox";
 
@@ -14,9 +14,9 @@ const STEPS = [
 ];
 
 /** The CodeChroma app window the scripted demo plays in. */
-function DemoWindow({ label }: { label: string }) {
+function DemoWindow({ label, panelOpen, onTogglePanel }: { label: string; panelOpen: boolean; onTogglePanel: () => void }) {
   return (
-    <div className="win" id="win" aria-label={label}>
+    <div className="win" id="win" aria-label={label} data-panel={panelOpen ? "on" : "off"}>
       <svg className="cursor" id="cursor" viewBox="0 0 20 20" aria-hidden="true">
         <path d="M3 2 L3 15 L6.5 11.8 L9 17 L11.2 16 L8.8 10.9 L13.5 10.5 Z" fill="#fff" stroke="#000" strokeWidth="1" />
       </svg>
@@ -26,6 +26,7 @@ function DemoWindow({ label }: { label: string }) {
         <span className="grow" />
         <span className="pill">⎇ task/refresh-tokens</span>
         <button className="pill wfpill" id="wfpill" type="button" data-act="noop" hidden />
+        <button className="pill panelbtn" id="panelbtn" type="button" aria-pressed={panelOpen} onClick={onTogglePanel}>{panelOpen ? "Hide panel" : "Agent panel"}</button>
         <button className="pill run" id="run" type="button">▶ Run workflow</button>
         <button className="pill pr" id="pr" type="button">Create PR ↗</button>
       </div>
@@ -77,6 +78,8 @@ function DemoWindow({ label }: { label: string }) {
 /** Hero: the headline is a note pinned to a live, scripted demo of the CodeChroma window. */
 export default function HomeDemo() {
   const ref = useRef<HTMLElement>(null);
+  // phones show the map only; the agent panel opens on demand
+  const [panelOpen, setPanelOpen] = useState(false);
 
   useEffect(() => (ref.current ? initHomeDemo(ref.current) : undefined), []);
 
@@ -113,7 +116,7 @@ export default function HomeDemo() {
           <button className="replay" id="replay" type="button">↺ replay the demo</button>
         </div>
 
-        <DemoWindow label="CodeChroma, scripted demo" />
+        <DemoWindow label="CodeChroma, scripted demo" panelOpen={panelOpen} onTogglePanel={() => setPanelOpen((v) => !v)} />
         <InstallBox />
       </div>
     </section>

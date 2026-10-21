@@ -181,7 +181,9 @@ export function initHomeDemo(root: HTMLElement): () => void {
     host.innerHTML = "";
     host.classList.add("map");
     // laid out for the height left when the bottom drawer is open, so the map never reshuffles when it opens
-    mapW = host.clientWidth || 600; colH = ($("map").closest(".col") as HTMLElement | null)?.clientHeight || 650; mapH = Math.max(240, colH - 170);
+    mapW = host.clientWidth || 600; colH = ($("map").closest(".col") as HTMLElement | null)?.clientHeight || 650; // on phones the drawer floats over the map, so the map can use the full column height
+    const phone = window.matchMedia("(max-width: 760px)").matches;
+    mapH = Math.max(240, colH - (phone ? 64 : 170));
     // blocks keep their size; the grid stretches over the whole canvas (shrinks only when it would not fit)
     const k = Math.min(1, mapW / 582, mapH / 420), vw = mapW / k, vh = mapH / k, pad = 6;
     const pos: Record<string, { x: number; y: number }> = {};

@@ -287,7 +287,7 @@ function InstallStep() {
         <button
           type="button"
           onClick={copy}
-          className="min-h-11 rounded-md bg-[color:var(--accent)] px-4 text-sm font-medium text-[color:var(--surface-0)]"
+          className="rounded-md bg-[color:var(--accent)] px-3 py-1.5 text-xs font-semibold text-[#06130c] hover:bg-[#8de0b0]"
         >
           {copied ? "Copied" : "Copy"}
         </button>
