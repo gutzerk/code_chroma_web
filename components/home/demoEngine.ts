@@ -546,6 +546,13 @@ export function initHomeDemo(root: HTMLElement): () => void {
     away.hidden = !S.away;
     away.textContent = "You're away · " + (1 + S.agents) + " agents building";
     $("verdict").hidden = !(done && S.reviewed);
+    // agents shown on the map itself (phones hide the side panel behind a sheet)
+    const bar = $("agentbar");
+    bar.hidden = !w || S.away;
+    if (w) {
+      const dot = w.st === "done" ? "ok" : w.st === "held" || w.st === "stopAfter" ? "held" : "run";
+      bar.innerHTML = ["ship-refresh", ...EXTRA_AGENTS.slice(0, S.agents)].map((n) => '<span class="achip"><i data-k="' + dot + '"></i>' + n + "</span>").join("");
+    }
     const pill = $("wfpill");
     pill.hidden = !w;
     if (w) {
@@ -637,7 +644,7 @@ export function initHomeDemo(root: HTMLElement): () => void {
       return { len: 9000, ev };
     },
     () => {
-      // 2 · launch agents: start the workflow, then add two more that run next to it
+      // 2 · run agents: start the workflow, then add two more that run next to it
       const ev: [number, () => void][] = [
         [0, () => { reset({ opened: true, plan: "plan" }); place($("map"), 60, 150); }],
         [300, () => mv($("run"))],

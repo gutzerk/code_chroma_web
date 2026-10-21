@@ -8,7 +8,7 @@ import InstallBox from "./InstallBox";
 /** `m` is what the map shows at that step, so each step adds something new instead of repeating the story. */
 const STEPS = [
   { s: 1, t: "Plan", d: "Describe a feature. The agent asks, then draws it as a diagram you own.", m: "Map: dashed blocks appear" },
-  { s: 2, t: "Launch agents", d: "Start as many as you need, each one on its own branch.", m: "Map: same blocks, each claimed by an agent" },
+  { s: 2, t: "Run agents", d: "Start as many as you need, each one on its own branch.", m: "Map: same blocks, each claimed by an agent" },
   { s: 3, t: "Walk away", d: "Work on something else while they build.", m: "Map: progress only, nothing to watch" },
   { s: 4, t: "Verify", d: "Check the result on the same map: it matches your plan or it doesn't.", m: "Map: blocks turn solid, verdict appears" },
 ];
@@ -37,6 +37,7 @@ function DemoWindow({ label, panelOpen, onTogglePanel }: { label: string; panelO
               <button className="pill" id="draw" type="button">✎ Draw…</button>
             </div>
             <div className="map" id="map" />
+            <div className="agentbar" id="agentbar" hidden />
             <div className="away" id="away" hidden />
             <div className="verdict" id="verdict" hidden>
               <b>✓ Matches your plan</b>
