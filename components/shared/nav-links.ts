@@ -5,7 +5,7 @@ export const NAV_ITEMS: { href: string; label: string }[] = [
   { href: "/", label: "Home" },
   { href: "/documentation", label: "Documentation" },
   { href: "/canvas", label: "Live map" },
-  { href: "/install", label: "Install" },
+  { href: "/install", label: "Install free" },
 ];
 
 /** Nav items for the desktop top bar. */

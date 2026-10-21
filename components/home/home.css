@@ -347,12 +347,57 @@
   .cch .stage-inner > .note, .cch .stage-inner > .win, .cch .stage-inner > .install { grid-column: auto; grid-row: auto; }
   .cch .stage-inner > .install { margin-top: 0; }
     }
+/* ---------- phone: the canvas is the page ----------
+   Headline, map and a one-row stepper share the first screen. The agent panel is hidden
+   and opens over the map with the "Agent panel" button. */
+.cch .panelbtn { display: none; }
 @media (max-width: 760px) {
-  .cch .win { height: auto; }
-  .cch .win-body { grid-template-columns: 1fr; }
-  .cch .col { height: 420px; }
-  .cch .panel { height: 460px; }
+  .cch .stage-inner { padding: 12px var(--gutter) 20px; gap: 10px; }
+  .cch .note { display: contents; }
+  .cch .note .eyebrow, .cch .note .lead, .cch .note .replay { display: none; }
+  .cch .note .h1 { order: 1; margin: 0; font-size: 20px; line-height: 1.18; }
+  .cch .stage-inner > .win { order: 2; }
+  .cch .note .cta { order: 3; margin-top: 0; }
+  .cch .note .flow { order: 4; margin: 0; }
+  .cch .stage-inner > .install { order: 5; }
+
+  .cch .win { height: clamp(420px, calc(100svh - 250px), 700px); border-radius: 14px; }
+  .cch .win .frame-bar { height: 48px; padding: 0 8px 0 12px; gap: 6px; }
+  .cch .win .frame-bar .dots { display: none; }
+  .cch .win .frame-bar .repo { font-size: 13px; }
+  .cch .win-body { grid-template-columns: minmax(0, 1fr); padding: 0 4px 4px; }
+  .cch .col { position: relative; height: auto; }
+  .cch .mapwrap { padding: 52px 4px 4px; }
+  .cch .tools { left: 8px; top: 6px; }
+
+  /* the controls that stay: Draw, Agent panel, Run workflow, Create PR */
   .cch .pill:not(.run):not(.pr):not(.wfpill) { display: none; }
+  .cch #draw, .cch #panelbtn { display: inline-flex; }
+  .cch .win .pill { min-height: 40px; align-items: center; padding: 0 12px; }
+
+  /* the agent panel opens as a sheet over the map */
+  .cch .panel { display: none; }
+  .cch .win[data-panel="on"] .panel { display: flex; position: absolute; inset: 48px 4px 4px; z-index: 6; height: auto; box-shadow: 0 0 0 1px var(--a-p3), 0 20px 40px -10px #000; }
+
+  /* the drawer floats over the map, so the map never shrinks */
+  .cch .drawer { position: absolute; left: 4px; right: 4px; bottom: 4px; z-index: 5; border-radius: 14px; box-shadow: 0 0 0 1px var(--a-p3), 0 16px 30px -8px #000; }
+  .cch [data-drawer="prompt"] .drawer, .cch [data-drawer="q"] .drawer, .cch [data-drawer="desc"] .drawer { height: 180px; }
+  .cch .drawer > section { height: 180px; overflow-y: auto; padding: 12px 14px; }
+  .cch .opt { max-width: none; flex: 1 1 100%; padding: 10px 12px; }
+
+  /* larger type inside the map so it stays readable once the grid is scaled to the phone width */
+  .cch .map .node .t { font-size: 14px; }
+  .cch .map .node .f { font-size: 11px; }
+  .cch .map .node .kind, .cch .map .node .tag { font-size: 10px; }
+  .cch .map .edge .lbl text { font-size: 10px; }
+  .cch .away, .cch .verdict { max-width: calc(100% - 16px); font-size: 12px; bottom: 8px; }
+  .cch .verdict { flex-wrap: wrap; justify-content: center; }
+
+  /* stepper: one row of four */
+  .cch .flow { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .cch .flow button { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; gap: 4px; padding: 8px 4px; min-height: 56px; }
+  .cch .flow strong { font-size: 12.5px; }
+  .cch .flow span.d, .cch .flow span.m { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .cch .cursor { display: none; } .cch .map .node.hint rect.body, .cch .hintbtn, .cch .opt.rec, .cch .prompt-in::after, .cch .chat-input .typed::after, .cch .map .node.ring rect.body { animation: none !important; } }
 
