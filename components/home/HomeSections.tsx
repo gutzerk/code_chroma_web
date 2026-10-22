@@ -4,17 +4,21 @@ import Link from "next/link";
 import { MINI } from "./featureMinis";
 
 const FEATURES = [
+  { k: "plan", eye: "1 · Plan", t: "Draw the feature before anyone writes it.", b: "Describe what you want and get a process diagram of it: the blocks, the flow between them, what is new. You decide the design, so the agents build your idea, not theirs." },
+  { k: "workspace", eye: "2 · Build", t: "Agents work in parallel while you do something else.", b: "Start as many agents as you need, each on its own branch. You don't have to watch them type. Step away and work on the next thing." },
+  { k: "review", eye: "3 · Verify", t: "Review diagrams, not diffs.", b: "Every change lands on the same map you planned on. If the pattern and the whole picture match your design, you don't need to read the code inside." },
   { k: "grounded", eye: "Trust", t: "Every block points to real code.", b: "The map is built from the source itself and each block is tied to a specific place in it. Nothing is made up, so what you see is what runs." },
   { k: "sync", eye: "Trust", t: "The map never goes stale.", b: "Change the code or the canvas and the other side updates right away. Unlike docs, the map stays true after every edit." },
+  { k: "workflow", eye: "Workflows", t: "Turn routine work into a workflow.", b: "Set up workflows with multiple steps and assign agents to carry them out. Let agents implement, review, and fix the code so you can focus on the next idea." },
 ];
 
 const COMPARE = {
   without: {
-    t: "Vibe coding without a map",
+    t: "Without a map",
     p: ["Agents change things and you don't know what.", "You read diffs you can't judge, or you skip them.", "Problems surface weeks later, in code nobody understands."],
   },
   with: {
-    t: "Vibe coding with CodeChroma",
+    t: "With CodeChroma",
     p: ["You draw the design first, as a process diagram.", "Agents build it in parallel, so you stay free.", "You review the result on the same map and stay responsible for the project."],
   },
 };
@@ -107,7 +111,7 @@ export default function HomeSections() {
             <h2 className="h2">Try it on your own repo.</h2>
             <p className="lead">Free, local, and pre-alpha. Install it, point it at a project and plan your next feature on the map.</p>
             <div className="cta-row">
-              <Link className="btn btn-primary" href="/install">Install free</Link>
+              <Link className="btn btn-primary" href="/install">Install</Link>
               <Link className="btn" href="/documentation">Read the docs</Link>
             </div>
           </div>

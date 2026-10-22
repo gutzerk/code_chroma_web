@@ -41,13 +41,6 @@ export default function Nav() {
             </svg>
             GitHub
           </a>
-          <Link
-            href="/install"
-            className="inline-flex items-center rounded-lg bg-[color:var(--accent)] px-3 py-2 text-sm sm:px-4 font-semibold text-[#06130c] transition-colors hover:bg-[#8de0b0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#b1f0c8] sm:inline-flex"
-          >
-            Install free
-          </Link>
-
           <MobileNav />
         </div>
       </nav>

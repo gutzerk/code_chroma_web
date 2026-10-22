@@ -7,10 +7,10 @@ import InstallBox from "./InstallBox";
 
 /** `m` is what the map shows at that step, so each step adds something new instead of repeating the story. */
 const STEPS = [
-  { s: 1, t: "Plan", d: "Describe a feature. The agent asks, then draws it as a diagram you own.", m: "Map: dashed blocks appear" },
-  { s: 2, t: "Run agents", d: "Start as many as you need, each one on its own branch.", m: "Map: same blocks, each claimed by an agent" },
-  { s: 3, t: "Walk away", d: "Work on something else while they build.", m: "Map: progress only, nothing to watch" },
-  { s: 4, t: "Verify", d: "Check the result on the same map: it matches your plan or it doesn't.", m: "Map: blocks turn solid, verdict appears" },
+  { s: 1, t: "Plan", d: "Describe a feature and explore its implementation in a diagram.", m: "Map: dashed blocks appear" },
+  { s: 2, t: "Build", d: "Run your own workflow to implement it.", m: "Map: planned blocks are being built" },
+  { s: 3, t: "Multitask", d: "Multitask with multiple agents in one app.", m: "Map: agents work on separate tasks in parallel" },
+  { s: 4, t: "Verify", d: "Check the same map to see if agents followed your vision.", m: "Map: blocks turn solid, verdict appears" },
 ];
 
 /** The CodeChroma app window the scripted demo plays in. */
@@ -90,13 +90,11 @@ export default function HomeDemo() {
       <div className="stage-inner">
         <div className="note">
           <span className="eyebrow">Speed without losing the plot</span>
-          <h1 className="h1">Vibe-code at full speed. Stay in control of the whole picture.</h1>
+          <h1 className="h1">Vibe-code at full speed. Stay in control</h1>
           <p className="lead">
-            You design and review in process diagrams. Agents write the code in parallel while you work on something
-            else, and every change lands on a map you already understand.
+            Design your project and let agents write the code. Follow every change on a map you already understand.
           </p>
           <div className="cta">
-            <Link className="btn btn-primary" href="/install">Install free</Link>
             <Link className="btn" href="/canvas">Explore a real map</Link>
           </div>
           <ol className="flow" id="flow">
