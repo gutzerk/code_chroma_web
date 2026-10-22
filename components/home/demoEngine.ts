@@ -18,10 +18,12 @@ type State = {
   opened: boolean; reviewed: boolean; sel: string | null; dockOpen: boolean; file: number;
   plan: PlanState; run: number; drawer: string; panel: "code" | "pick" | "wf"; wf: Wf | null;
   agents: number; away: boolean;
+  /** phones: the agent panel is open as a sheet over the map */
+  peek: boolean;
 };
 type Scene = { len: number; ev: [number, () => void][] };
 
-const W = 150, H = 62;
+const BW = 150, BH = 62;
 // c = column 0..2, r = row 0..4; the map is laid out to fill whatever size the canvas has
 const NODES = [
   { id: "client", g: "client", kind: "CLIENT · ENTRY", c: 1, r: 0, t: "Web client", f: "web/src/api.ts" },
@@ -149,7 +151,7 @@ export function initHomeDemo(root: HTMLElement): () => void {
     attempt: 1, view: 1, redoFrom: 0, ...o,
   });
   const fresh = (o?: Partial<State>, run = 0): State => ({
-    opened: false, reviewed: false, sel: null, dockOpen: false, file: 0, plan: 0, run, drawer: "", panel: "code", wf: null, agents: 0, away: false, ...o,
+    opened: false, reviewed: false, sel: null, dockOpen: false, file: 0, plan: 0, run, drawer: "", panel: "code", wf: null, agents: 0, away: false, peek: false, ...o,
   });
   let S = fresh();
   let pickSel = -1, pickText = "", wfName = WORKFLOWS[0].n;
@@ -158,6 +160,7 @@ export function initHomeDemo(root: HTMLElement): () => void {
   let scene = 0;
   let disposed = false;
   let raf = 0;
+  const isPhone = () => window.matchMedia("(max-width: 760px)").matches;
   const later = (fn: () => void, ms: number) => { if (reduce) { fn(); return; } timers.push(setTimeout(fn, ms)); };
   const clearTimers = () => { timers.forEach(clearTimeout); timers = []; S.run++; };
 
@@ -182,10 +185,13 @@ export function initHomeDemo(root: HTMLElement): () => void {
     host.classList.add("map");
     // laid out for the height left when the bottom drawer is open, so the map never reshuffles when it opens
     mapW = host.clientWidth || 600; colH = ($("map").closest(".col") as HTMLElement | null)?.clientHeight || 650; // on phones the drawer floats over the map, so the map can use the full column height
-    const phone = window.matchMedia("(max-width: 760px)").matches;
+    const phone = isPhone();
     mapH = Math.max(240, colH - (phone ? 64 : 170));
+    // phones get narrower blocks and tighter columns, so the map is drawn larger on a narrow screen
+    const W = phone ? 130 : BW, H = phone ? 58 : BH;
+    const minW = phone ? 3 * W + 2 * 30 + 12 : 582;
     // blocks keep their size; the grid stretches over the whole canvas (shrinks only when it would not fit)
-    const k = Math.min(1, mapW / 582, mapH / 420), vw = mapW / k, vh = mapH / k, pad = 6;
+    const k = Math.min(1, mapW / minW, mapH / 420), vw = mapW / k, vh = mapH / k, pad = 6;
     const pos: Record<string, { x: number; y: number }> = {};
     NODES.forEach((n) => { pos[n.id] = { x: pad + n.c * (vw - W - 2 * pad) / 2, y: pad + n.r * (vh - H - 2 * pad) / 4 }; });
     const svg = svgEl("svg", { viewBox: "0 0 " + vw + " " + vh, style: "width:" + mapW + "px;height:" + mapH + "px", role: "img", "aria-label": "Architecture map of the sample project" });
@@ -202,15 +208,17 @@ export function initHomeDemo(root: HTMLElement): () => void {
         const left = B.x < A.x, x1 = left ? A.x : A.x + W, x2 = left ? B.x + W : B.x, y = A.y + H / 2;
         d = "M" + x1 + " " + y + " H" + x2; lx = (x1 + x2) / 2; ly = y;
       } else {
-        const x1 = A.x + W / 2 - 50, y1 = A.y + H, ym = (y1 + B.y) / 2, x2 = B.x + W / 2;
+        const x1 = A.x + W / 2 - (phone ? 40 : 50), y1 = A.y + H, ym = (y1 + B.y) / 2, x2 = B.x + W / 2;
         d = "M" + x1 + " " + y1 + " V" + ym + " H" + x2 + " V" + B.y; lx = (x1 + x2) / 2; ly = ym;
       }
       const g = svgEl("g", { class: "edge" + (e.cls ? " " + e.cls : "") }, svg);
       svgEl("path", { d, "marker-end": "url(#cch-arw)" }, g);
       const lbl = svgEl("g", { class: "lbl" }, g);
-      const w = e.l.length * 5.6 + 12;
+      // short horizontal links on phones show only the step number
+      const l = phone && e.kind === "h" ? e.l.split(" ")[0] : e.l;
+      const w = l.length * (phone ? 6.4 : 5.6) + 12;
       svgEl("rect", { x: lx - w / 2, y: ly - 8, width: w, height: 16, rx: 8 }, lbl);
-      svgEl("text", { x: lx, y: ly + 3.2, "text-anchor": "middle" }, lbl).textContent = e.l;
+      svgEl("text", { x: lx, y: ly + 3.2, "text-anchor": "middle" }, lbl).textContent = l;
     });
     NODES.forEach((n) => {
       const g = svgEl("g", { class: "node " + n.id + (n.cls ? " " + n.cls : ""), "data-id": n.id, transform: "translate(" + pos[n.id].x + " " + pos[n.id].y + ")", style: "--c:var(--g-" + n.g + ")", tabindex: 0, role: "button", "aria-label": n.t + ", open code" }, svg);
@@ -501,7 +509,7 @@ export function initHomeDemo(root: HTMLElement): () => void {
   function doRun() {
     if (S.wf || pickSel < 0 || !pickText) return;
     ++S.run;
-    S.plan = "build"; S.panel = "wf"; S.wf = newWf({ prompt: pickText });
+    S.plan = "build"; S.panel = "wf"; S.peek = true; S.wf = newWf({ prompt: pickText });
     render();
     schedule();
   }
@@ -538,6 +546,13 @@ export function initHomeDemo(root: HTMLElement): () => void {
     away.hidden = !S.away;
     away.textContent = "You're away · " + (1 + S.agents) + " agents building";
     $("verdict").hidden = !(done && S.reviewed);
+    // agents shown on the map itself (phones hide the side panel behind a sheet)
+    const bar = $("agentbar");
+    bar.hidden = !w || S.away;
+    if (w) {
+      const dot = w.st === "done" ? "ok" : w.st === "held" || w.st === "stopAfter" ? "held" : "run";
+      bar.innerHTML = ["ship-refresh", ...EXTRA_AGENTS.slice(0, S.agents)].map((n) => '<span class="achip"><i data-k="' + dot + '"></i>' + n + "</span>").join("");
+    }
     const pill = $("wfpill");
     pill.hidden = !w;
     if (w) {
@@ -550,6 +565,10 @@ export function initHomeDemo(root: HTMLElement): () => void {
       li.classList.toggle("done", s < step);
       li.querySelector(".num")!.textContent = s < step ? "✓" : String(s);
     });
+    // phones: the agent panel opens as a sheet over the map only while the step is happening in it
+    const sheet = S.panel === "pick" ? "full" : (S.panel === "wf" && S.peek && !S.away) ? "tall"
+      : S.panel === "code" && S.dockOpen && S.sel ? "short" : "off";
+    win.dataset.sheet = sheet;
     renderPanel();
   }
 
@@ -590,7 +609,10 @@ export function initHomeDemo(root: HTMLElement): () => void {
   function mv(elm: Element | null, dx = 0, dy = 0) {
     if (!elm) return;
     const a = win.getBoundingClientRect(), r = elm.getBoundingClientRect();
-    cursor.style.transform = "translate(" + (r.left - a.left + r.width / 2 + dx) + "px," + (r.top - a.top + r.height / 2 + dy) + "px)";
+    // the cursor never leaves the window, however small the screen is
+    const x = Math.max(4, Math.min(a.width - 18, r.left - a.left + r.width / 2 + dx));
+    const y = Math.max(4, Math.min(a.height - 18, r.top - a.top + r.height / 2 + dy));
+    cursor.style.transform = "translate(" + x + "px," + y + "px)";
   }
   // jump the cursor to a spot with no travel, so a scene starts from a clean place
   function place(elm: Element | null, dx = 0, dy = 0) {
@@ -622,7 +644,7 @@ export function initHomeDemo(root: HTMLElement): () => void {
       return { len: 9000, ev };
     },
     () => {
-      // 2 · launch agents: start the workflow, then add two more that run next to it
+      // 2 · run agents: start the workflow, then add two more that run next to it
       const ev: [number, () => void][] = [
         [0, () => { reset({ opened: true, plan: "plan" }); place($("map"), 60, 150); }],
         [300, () => mv($("run"))],
@@ -652,6 +674,8 @@ export function initHomeDemo(root: HTMLElement): () => void {
       [0, () => { reset(pre({ cur: 3, prompt: PROMPT }, { plan: "done", agents: 2 })); cursor.style.opacity = "1"; place($("map"), 60, 150); }],
       [400, () => mv(nodeEls.auth)],
       [1050, () => { rip(); openNode("auth"); }],
+      // phones: close the code sheet first so the next block is in view
+      [2900, () => { if (isPhone()) closeDock(); }],
       [3400, () => mv(nodeEls.store)],
       [4050, () => { rip(); openNode("store"); }],
       [5600, () => wfAdvance()],

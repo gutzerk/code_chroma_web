@@ -8,7 +8,7 @@ import InstallBox from "./InstallBox";
 /** `m` is what the map shows at that step, so each step adds something new instead of repeating the story. */
 const STEPS = [
   { s: 1, t: "Plan", d: "Describe a feature. The agent asks, then draws it as a diagram you own.", m: "Map: dashed blocks appear" },
-  { s: 2, t: "Launch agents", d: "Start as many as you need, each one on its own branch.", m: "Map: same blocks, each claimed by an agent" },
+  { s: 2, t: "Run agents", d: "Start as many as you need, each one on its own branch.", m: "Map: same blocks, each claimed by an agent" },
   { s: 3, t: "Walk away", d: "Work on something else while they build.", m: "Map: progress only, nothing to watch" },
   { s: 4, t: "Verify", d: "Check the result on the same map: it matches your plan or it doesn't.", m: "Map: blocks turn solid, verdict appears" },
 ];
@@ -16,7 +16,7 @@ const STEPS = [
 /** The CodeChroma app window the scripted demo plays in. */
 function DemoWindow({ label, panelOpen, onTogglePanel }: { label: string; panelOpen: boolean; onTogglePanel: () => void }) {
   return (
-    <div className="win" id="win" aria-label={label} data-panel={panelOpen ? "on" : "off"}>
+    <div className="win" id="win" aria-label={label} data-panel={panelOpen ? "on" : "off"} data-sheet="off">
       <svg className="cursor" id="cursor" viewBox="0 0 20 20" aria-hidden="true">
         <path d="M3 2 L3 15 L6.5 11.8 L9 17 L11.2 16 L8.8 10.9 L13.5 10.5 Z" fill="#fff" stroke="#000" strokeWidth="1" />
       </svg>
@@ -27,7 +27,7 @@ function DemoWindow({ label, panelOpen, onTogglePanel }: { label: string; panelO
         <span className="pill">⎇ task/refresh-tokens</span>
         <button className="pill wfpill" id="wfpill" type="button" data-act="noop" hidden />
         <button className="pill panelbtn" id="panelbtn" type="button" aria-pressed={panelOpen} onClick={onTogglePanel}>{panelOpen ? "Hide panel" : "Agent panel"}</button>
-        <button className="pill run" id="run" type="button">▶ Run workflow</button>
+        <button className="pill run" id="run" type="button">▶ Run<span className="lg"> workflow</span></button>
         <button className="pill pr" id="pr" type="button">Create PR ↗</button>
       </div>
       <div className="win-body">
@@ -37,6 +37,7 @@ function DemoWindow({ label, panelOpen, onTogglePanel }: { label: string; panelO
               <button className="pill" id="draw" type="button">✎ Draw…</button>
             </div>
             <div className="map" id="map" />
+            <div className="agentbar" id="agentbar" hidden />
             <div className="away" id="away" hidden />
             <div className="verdict" id="verdict" hidden>
               <b>✓ Matches your plan</b>

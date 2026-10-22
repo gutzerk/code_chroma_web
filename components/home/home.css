@@ -241,6 +241,10 @@
 .cch .verdict { background: rgba(74, 222, 128, .14); color: var(--a-text); box-shadow: inset 0 0 0 1px rgba(74, 222, 128, .45), 0 8px 24px -10px #000; }
 .cch .verdict b { color: var(--a-green); font-weight: 600; }
 .cch .verdict span { color: var(--a-t2); }
+.cch .agentbar { display: none; }
+.cch .achip { display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; height: 40px; border-radius: 999px; background: var(--a-p2); color: var(--a-t2); font: 600 11px var(--mono); white-space: nowrap; box-shadow: inset 0 0 0 1px #3b4a73; }
+.cch .achip i { width: 7px; height: 7px; border-radius: 50%; background: var(--a-green); flex: none; }
+.cch .achip i[data-k="run"] { background: var(--a-blue); } .cch .achip i[data-k="held"] { background: var(--a-amber); }
 .cch .ptab i { width: 7px; height: 7px; border-radius: 50%; background: var(--a-green); flex: none; }
 .cch .ptab i[data-k="run"] { background: var(--a-blue); } .cch .ptab i[data-k="held"] { background: var(--a-amber); }
 .cch .ptab em { font: 500 9px var(--mono); font-style: normal; letter-spacing: .06em; padding: 1px 6px; border-radius: 6px; background: rgba(183, 148, 255, .14); color: var(--a-violet); }
@@ -364,34 +368,56 @@
   .cch .win { height: clamp(420px, calc(100svh - 250px), 700px); border-radius: 14px; }
   .cch .win .frame-bar { height: 48px; padding: 0 8px 0 12px; gap: 6px; }
   .cch .win .frame-bar .dots { display: none; }
-  .cch .win .frame-bar .repo { font-size: 13px; }
+  .cch .win .frame-bar .repo { font-size: 13px; min-width: 0; flex: 0 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cch .win .frame-bar .pill { flex: none; }
+  .cch .pill.run .lg { display: none; }
   .cch .win-body { grid-template-columns: minmax(0, 1fr); padding: 0 4px 4px; }
   .cch .col { position: relative; height: auto; }
   .cch .mapwrap { padding: 52px 4px 4px; }
   .cch .tools { left: 8px; top: 6px; }
 
   /* the controls that stay: Draw, Agent panel, Run workflow, Create PR */
-  .cch .pill:not(.run):not(.pr):not(.wfpill) { display: none; }
-  .cch #draw, .cch #panelbtn { display: inline-flex; }
+  .cch .pill:not(.run):not(.pr) { display: none; }
+  .cch #draw { display: inline-flex; }
+  /* the scripted demo opens the panel by itself; the manual toggle is only for the reduced-motion version */
+  @media (prefers-reduced-motion: reduce) { .cch #panelbtn { display: inline-flex; } }
   .cch .win .pill { min-height: 40px; align-items: center; padding: 0 12px; }
 
   /* the agent panel opens as a sheet over the map */
   .cch .panel { display: none; }
+  /* during the demo the panel slides up as a sheet over the lower part of the map while a step happens in it */
+  .cch .win[data-sheet="full"] .panel, .cch .win[data-sheet="tall"] .panel, .cch .win[data-sheet="short"] .panel { display: flex; position: absolute; left: 4px; right: 4px; bottom: 4px; z-index: 6;
+    height: 50%; box-shadow: 0 0 0 1px var(--a-p3), 0 -18px 40px -12px #000; animation: cch-sheet .28s ease-out; }
+  .cch .win[data-sheet="short"] .panel { height: 52%; }
+  .cch .win[data-sheet="full"] .panel { height: calc(100% - 100px); }
+  @keyframes cch-sheet { from { transform: translateY(24px); opacity: 0; } }
+  .cch .panel .wfpick { flex: 1; min-height: 0; overflow: auto; padding: 4px 10px 10px; }
+  .cch .ptabs { flex-wrap: wrap; }
+  .cch .wfopt { padding: 7px 10px; }
+  .cch .wfopt span { display: none; }
   .cch .win[data-panel="on"] .panel { display: flex; position: absolute; inset: 48px 4px 4px; z-index: 6; height: auto; box-shadow: 0 0 0 1px var(--a-p3), 0 20px 40px -10px #000; }
 
   /* the drawer floats over the map, so the map never shrinks */
   .cch .drawer { position: absolute; left: 4px; right: 4px; bottom: 4px; z-index: 5; border-radius: 14px; box-shadow: 0 0 0 1px var(--a-p3), 0 16px 30px -8px #000; }
-  .cch [data-drawer="prompt"] .drawer, .cch [data-drawer="q"] .drawer, .cch [data-drawer="desc"] .drawer { height: 180px; }
-  .cch .drawer > section { height: 180px; overflow-y: auto; padding: 12px 14px; }
-  .cch .opt { max-width: none; flex: 1 1 100%; padding: 10px 12px; }
+  .cch [data-drawer="prompt"] .drawer, .cch [data-drawer="q"] .drawer, .cch [data-drawer="desc"] .drawer { height: auto; max-height: 60%; overflow-y: auto; }
+  .cch .drawer > section { height: auto; padding: 12px 14px; }
+  .cch .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cch .opt { max-width: none; padding: 10px 12px; }
+  .cch .opt:last-child { display: none; }
 
   /* larger type inside the map so it stays readable once the grid is scaled to the phone width */
-  .cch .map .node .t { font-size: 14px; }
-  .cch .map .node .f { font-size: 11px; }
-  .cch .map .node .kind, .cch .map .node .tag { font-size: 10px; }
+  .cch .map .node .t { font-size: 12.5px; }
+  .cch .map .node .f { font-size: 10px; }
+  .cch .map .node .kind, .cch .map .node .tag { font-size: 9px; }
   .cch .map .edge .lbl text { font-size: 10px; }
-  .cch .away, .cch .verdict { max-width: calc(100% - 16px); font-size: 12px; bottom: 8px; }
-  .cch .verdict { flex-wrap: wrap; justify-content: center; }
+  /* status pills sit at the top of the map, next to Draw, so a sheet never covers them */
+  .cch .away, .cch .verdict { top: 6px; bottom: auto; left: auto; right: 8px; transform: none; height: 40px; padding: 0 12px;
+    max-width: calc(100% - 110px); font-size: 11px; overflow: hidden; text-overflow: ellipsis; }
+  /* the verdict is the changes sheet's job on phones */
+  .cch .verdict { display: none; }
+  /* running agents show as chips on the map, right of Draw */
+  .cch .agentbar:not([hidden]) { display: flex; position: absolute; top: 6px; left: 96px; right: 8px; z-index: 2; gap: 6px; overflow: hidden; }
+  .cch .agentbar .achip { flex: 0 1 auto; min-width: 0; overflow: hidden; }
 
   /* stepper: one row of four */
   .cch .flow { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
