@@ -19,7 +19,7 @@ export default function CanvasPage() {
         <div className={styles.pageTitle}>Live map · sample project</div>
         <div className={styles.actions}>
           <p className={styles.hint}>Drag to pan <span>·</span> Scroll to zoom <span>·</span> Click a block for its code</p>
-          <Link className={styles.install} href="/install">Install free</Link>
+          <Link className={styles.install} href="/install">Install</Link>
         </div>
       </header>
       <CanvasHint />

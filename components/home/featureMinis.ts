@@ -2,6 +2,11 @@
 const range = (n: number) => Array.from({ length: n }, (_, i) => i);
 
 export const MINI: Record<string, string> = {
+  workflow: `<svg viewBox="0 0 280 150" aria-hidden="true">
+      <defs><marker id="mw" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="var(--faint)"/></marker></defs>
+      <path class="wire" d="M88 75 H104 M176 75 H192" marker-end="url(#mw)"/>
+      ${["Implement", "Code-review", "Fix"].map((label, i) => `<rect class="box" x="${16 + i * 88}" y="56" width="72" height="38" rx="7" style="stroke:var(--accent)"/><text x="${52 + i * 88}" y="79" text-anchor="middle" style="fill:var(--text)">${label}</text><circle cx="${52 + i * 88}" cy="36" r="5" fill="var(--accent)"/><path class="wire" d="M${52 + i * 88} 41 V56"/>`).join("")}
+      <text x="140" y="122" text-anchor="middle">your workflow · agents at every step</text></svg>`,
   onboard: `<svg viewBox="0 0 280 150" aria-hidden="true">
       ${range(8).map((i) => `<line class="ln" x1="16" y1="${22 + i * 15}" x2="${60 + ((i * 37) % 50)}" y2="${22 + i * 15}"/>`).join("")}
       <path class="wire" d="M122 75 H150" marker-end="url(#ma)"/>

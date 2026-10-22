@@ -1,5 +1,5 @@
 /* Engine for the home-page demo: a sample project drawn as a map next to the agent panel of the real
-   app, plus a scripted cursor that walks through plan, launch agents, walk away, and verify. A click
+   app, plus a scripted cursor that walks through planning, building, parallel tests, and verification. A click
    inside the window hands control to the visitor. It works on the markup rendered by HomeDemo.tsx and
    returns a cleanup. */
 
@@ -17,7 +17,7 @@ type Wf = {
 type State = {
   opened: boolean; reviewed: boolean; sel: string | null; dockOpen: boolean; file: number;
   plan: PlanState; run: number; drawer: string; panel: "code" | "pick" | "wf"; wf: Wf | null;
-  agents: number; away: boolean;
+  agents: number; away: boolean; launchingAgent: boolean; agentPrompt: string;
   /** phones: the agent panel is open as a sheet over the map */
   peek: boolean;
 };
@@ -110,7 +110,9 @@ const STEPS = ["Plan", "Implement", "Review", "Ship"];
 const STEP_SLUG = ["plan", "implement", "review", "ship"];
 const ASK = "why Postgres, not Redis?";
 // agents started next to the workflow, to show that several run at once on their own branches
-const EXTRA_AGENTS = ["audit-log", "rate-limit"];
+const PRIMARY_AGENT = "Auth";
+const EXTRA_AGENTS = ["Tests"];
+const AGENT_TASK = "Write tests for refresh token expiry and reuse.";
 const PROMPT = "Add refresh tokens to the auth flow";
 const WORKFLOWS = [
   { n: "Ship a feature", d: "Plan, build, review, open the PR" },
@@ -151,7 +153,7 @@ export function initHomeDemo(root: HTMLElement): () => void {
     attempt: 1, view: 1, redoFrom: 0, ...o,
   });
   const fresh = (o?: Partial<State>, run = 0): State => ({
-    opened: false, reviewed: false, sel: null, dockOpen: false, file: 0, plan: 0, run, drawer: "", panel: "code", wf: null, agents: 0, away: false, peek: false, ...o,
+    opened: false, reviewed: false, sel: null, dockOpen: false, file: 0, plan: 0, run, drawer: "", panel: "code", wf: null, agents: 0, away: false, launchingAgent: false, agentPrompt: "", peek: false, ...o,
   });
   let S = fresh();
   let pickSel = -1, pickText = "", wfName = WORKFLOWS[0].n;
@@ -326,7 +328,12 @@ export function initHomeDemo(root: HTMLElement): () => void {
           (m.chip ? '<span class="chat-chip">' + esc(m.chip.label) + ' <button type="button" data-act="show:' + m.chip.node + '">Show on canvas</button></span>' : "") + "</li>").join("");
     const input = '<div class="chat-form"><button type="button" class="chat-input" data-act="ask" aria-label="Ask the run">' +
       (w.typing ? '<span class="typed">' + esc(w.typing) + "</span>" : '<span class="ph">Ask the run, or @step to ask one step</span>') + "</button></div>";
-    return '<div class="wf">' + head + rail + banner + card + '<ul class="chat-log" aria-label="Chat">' + log + "</ul>" + input + "</div>";
+    const agentTask = S.agents ? '<section class="agent-task" aria-label="Tests agent task"><div><b>Tests</b><span class="wf-state" data-k="' + (w.cur >= 2 ? "done" : "running") + '">' + (w.cur >= 2 ? "done" : "running") + '</span></div><p>' + AGENT_TASK + '</p><span class="mono dim">' + (w.cur >= 2 ? "Tests written · ready to run after implementation" : "Writing tests on branch test/refresh") + '</span></section>' : "";
+    return '<div class="wf">' + head + agentTask + rail + banner + card + '<ul class="chat-log" aria-label="Chat">' + log + "</ul>" + input + "</div>";
+  }
+
+  function renderAgentLaunch(): string {
+    return '<div class="wf"><div class="wf-head"><b>Start another task</b></div><p class="wf-prompt">Auth is implementing refresh tokens. Ask another agent to write tests in parallel.</p><div class="agent-task"><b>Task</b><button type="button" class="agent-prompt" data-act="fill-agent" aria-label="Agent task">' + (S.agentPrompt ? esc(S.agentPrompt) : 'What should this agent do?') + '</button><span class="mono dim">Branch: test/refresh</span></div><div><button type="button" class="sbtn main" data-act="start-agent"' + (S.agentPrompt ? "" : " disabled") + '>▶ Start agent</button></div></div>';
   }
 
   function renderPanel() {
@@ -334,10 +341,10 @@ export function initHomeDemo(root: HTMLElement): () => void {
     if (S.panel === "pick") {
       html = '<div class="ptabs"><span class="ptab on"><i data-k="ok"></i>agent1 <small class="mono dim">claude · main · idle</small></span></div>' + renderPick();
     } else if (S.panel === "wf" && S.wf) {
-      const dot = S.wf.st === "done" ? "ok" : "run";
+      const dot = S.wf.cur >= 2 || S.wf.st === "done" ? "ok" : "run";
       const extra = EXTRA_AGENTS.slice(0, S.agents).map((n) => '<span class="ptab"><i data-k="' + dot + '"></i>' + n + "</span>").join("");
       const add = S.agents < EXTRA_AGENTS.length ? '<button type="button" class="ptab add" data-act="addagent">+ agent</button>' : "";
-      html = '<div class="ptabs"><span class="ptab on"><i data-k="' + (S.wf.st === "held" || S.wf.st === "stopAfter" ? "held" : "run") + '"></i>ship-refresh <em>WORKFLOW</em></span>' + extra + add + "</div>" + renderWf(S.wf);
+      html = '<div class="ptabs"><span class="ptab on"><i data-k="' + (S.wf.st === "done" ? "ok" : S.wf.st === "held" || S.wf.st === "stopAfter" ? "held" : "run") + '"></i>' + PRIMARY_AGENT + ' <em>WORKFLOW</em></span>' + extra + add + "</div>" + (S.launchingAgent ? renderAgentLaunch() : renderWf(S.wf));
     } else {
       html = '<div class="ptabs"><span class="ptab on"><i data-k="ok"></i>agent1 <small class="mono dim">claude · main · idle</small></span></div>' + renderCode();
     }
@@ -428,7 +435,9 @@ export function initHomeDemo(root: HTMLElement): () => void {
       case "begin": doRun(); return;
       case "ask": ask(); return;
       case "show": ring(arg); render(); return;
-      case "addagent": if (S.agents < EXTRA_AGENTS.length) S.agents++; render(); return;
+      case "addagent": if (S.agents < EXTRA_AGENTS.length) { S.launchingAgent = true; S.peek = true; } render(); return;
+      case "fill-agent": S.agentPrompt = AGENT_TASK; render(); return;
+      case "start-agent": if (S.launchingAgent && S.agentPrompt) { S.agents = 1; S.launchingAgent = false; } render(); return;
     }
     if (!w) return;
     const i = +arg;
@@ -551,7 +560,7 @@ export function initHomeDemo(root: HTMLElement): () => void {
     bar.hidden = !w || S.away;
     if (w) {
       const dot = w.st === "done" ? "ok" : w.st === "held" || w.st === "stopAfter" ? "held" : "run";
-      bar.innerHTML = ["ship-refresh", ...EXTRA_AGENTS.slice(0, S.agents)].map((n) => '<span class="achip"><i data-k="' + dot + '"></i>' + n + "</span>").join("");
+      bar.innerHTML = [PRIMARY_AGENT, ...EXTRA_AGENTS.slice(0, S.agents)].map((n) => '<span class="achip"><i data-k="' + (n !== PRIMARY_AGENT && w.cur >= 2 ? "ok" : dot) + '"></i>' + n + "</span>").join("");
     }
     const pill = $("wfpill");
     pill.hidden = !w;
@@ -644,7 +653,7 @@ export function initHomeDemo(root: HTMLElement): () => void {
       return { len: 9000, ev };
     },
     () => {
-      // 2 · run agents: start the workflow, then add two more that run next to it
+      // 2 · start the implementation workflow with the approved plan.
       const ev: [number, () => void][] = [
         [0, () => { reset({ opened: true, plan: "plan" }); place($("map"), 60, 150); }],
         [300, () => mv($("run"))],
@@ -654,24 +663,29 @@ export function initHomeDemo(root: HTMLElement): () => void {
         [2500, () => mv(q('[data-act="fill"]'), 40, 0)],
         [4400, () => mv(q('[data-act="begin"]'))],
         [5050, () => { rip(); act("begin"); }],
-        [6200, () => mv(q('[data-act="addagent"]'))],
-        [6850, () => { rip(); act("addagent"); }],
-        [7500, () => { rip(); act("addagent"); }],
+        [6200, () => wfAdvance()],
       ];
       for (let i = 1; i <= PROMPT.length; i++) ev.push([2700 + i * 45, () => { pickText = PROMPT.slice(0, i); renderPanel(); }]);
-      return { len: 9300, ev };
+      return { len: 7800, ev };
     },
-    () => ({ len: 8200, ev: [
-      // 3 · walk away: the cursor leaves, the agents keep building and the planned blocks turn green
-      [0, () => { reset(pre({ cur: 1, prompt: PROMPT }, { plan: "build", agents: 2 })); place($("map"), 60, 150); }],
-      [400, () => mv(win, 0, 340)],
-      [1300, () => { S.away = true; cursor.style.opacity = "0"; render(); }],
-      [3300, () => wfAdvance()],
-      [5600, () => wfAdvance()],
-    ] }),
+    () => {
+      // 3 · delegate concrete tests while Auth continues implementing.
+      const ev: [number, () => void][] = [
+        [0, () => { reset(pre({ cur: 1, prompt: PROMPT }, { plan: "build", peek: true })); place($("map"), 60, 150); }],
+        [400, () => mv(q('[data-act="addagent"]'))],
+        [1050, () => { rip(); act("addagent"); }],
+        [1500, () => mv(q('[data-act="fill-agent"]'))],
+        [4000, () => mv(q('[data-act="start-agent"]'))],
+        [4650, () => { rip(); act("start-agent"); }],
+        [6900, () => wfAdvance()],
+        [9000, () => { S.peek = false; render(); }],
+      ];
+      for (let i = 1; i <= AGENT_TASK.length; i++) ev.push([1900 + i * 40, () => { S.agentPrompt = AGENT_TASK.slice(0, i); renderPanel(); }]);
+      return { len: 10400, ev };
+    },
     () => ({ len: 9200, ev: [
       // 4 · verify: back on the same map, the result either matches the plan or it doesn't
-      [0, () => { reset(pre({ cur: 3, prompt: PROMPT }, { plan: "done", agents: 2 })); cursor.style.opacity = "1"; place($("map"), 60, 150); }],
+      [0, () => { reset(pre({ cur: 3, prompt: PROMPT }, { plan: "done", agents: 1 })); cursor.style.opacity = "1"; place($("map"), 60, 150); }],
       [400, () => mv(nodeEls.auth)],
       [1050, () => { rip(); openNode("auth"); }],
       // phones: close the code sheet first so the next block is in view
